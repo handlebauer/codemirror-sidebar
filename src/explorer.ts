@@ -162,7 +162,7 @@ function renderFileNode(
     view: EditorView,
     selectedFile: string | null,
 ) {
-    const indentation = level * 16 // 16px per level
+    const indentation = level * 8 // Reduced from 16px to 8px per level
     const explorerState = view.state.field(fileExplorerState)
 
     if (node.isDirectory) {
@@ -172,7 +172,7 @@ function renderFileNode(
             'span',
             {
                 class: `cm-directory-caret${isExpanded ? ' expanded' : ''}`,
-                style: `display: inline-block; width: 12px; text-align: center; user-select: none; font-size: 14px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
+                style: `display: flex; align-items: center; justify-content: center; width: 8px; height: 16px; line-height: 16px; text-align: center; user-select: none; font-size: 12px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
             },
             '›',
         )
@@ -180,7 +180,7 @@ function renderFileNode(
             'span',
             {
                 class: 'cm-file-explorer-directory',
-                style: 'margin-left: 4px; user-select: none;',
+                style: 'margin-left: 4px; user-select: none; display: flex; align-items: center;',
             },
             node.name,
         )
@@ -188,7 +188,7 @@ function renderFileNode(
             'li',
             {
                 class: 'cm-file-explorer-item cm-file-explorer-directory-item',
-                style: `padding-left: ${indentation}px`,
+                style: `padding-left: ${indentation}px; display: flex; align-items: center;`,
                 onclick: () => {
                     view.dispatch({
                         effects: toggleDirEffect.of(node.path),
@@ -212,7 +212,7 @@ function renderFileNode(
             'span',
             {
                 class: 'cm-file-explorer-file',
-                style: 'user-select: none;',
+                style: 'user-select: none; margin-left: 12px;', // 8px (caret) + 4px (matching directory margin)
             },
             node.name,
         )
