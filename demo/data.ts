@@ -1,46 +1,50 @@
 import { type File } from '../src/explorer'
 
-// Extract project name from GitHub URL
-const GITHUB_URL =
-    'https://raw.githubusercontent.com/handlebauer/bun-basic-tmpl/main'
-export const PROJECT_NAME = GITHUB_URL.split('/')[4] // Extract repo name from URL
+// Extract project name from Gist URL
+const GIST_URL =
+    'https://gist.github.com/handlebauer/c924b6ae9cbfa2bed7a81bb8ad2b8041'
+const HASH_LENGTH = 7
+export const PROJECT_NAME =
+    '#' + (GIST_URL.split('/').pop()?.slice(0, HASH_LENGTH) || 'unknown') // Use shortened gist hash as project name
 
-// Function to fetch repository content
-async function fetchRepoContent(): Promise<File[]> {
+// GitHub Gist API types
+interface GistFile {
+    filename: string
+    type: string
+    language: string
+    raw_url: string
+    size: number
+    truncated: boolean
+    content: string
+}
+
+interface GistResponse {
+    files: { [key: string]: GistFile }
+}
+
+// Function to fetch gist content
+async function fetchGistContent(): Promise<File[]> {
     const files: File[] = []
-    const baseUrl =
-        'https://raw.githubusercontent.com/handlebauer/bun-basic-tmpl/main'
-
-    // Define the files we want to fetch
-    const filePaths = [
-        '.gitignore',
-        'README.md',
-        'bun.lockb',
-        'package.json',
-        'src/index.ts',
-        'tsconfig.json',
-    ]
+    const gistId = GIST_URL.split('/').pop()
 
     try {
-        const responses = await Promise.all(
-            filePaths.map(path =>
-                fetch(`${baseUrl}/${path}`)
-                    .then(res => res.text())
-                    .then(content => ({
-                        name: path,
-                        content,
-                    })),
-            ),
-        )
+        const response = await fetch(`https://api.github.com/gists/${gistId}`)
+        const data = (await response.json()) as GistResponse
 
-        files.push(...responses)
+        // Convert gist files to our File format
+        for (const [filename, fileData] of Object.entries(data.files)) {
+            files.push({
+                name: filename,
+                content: fileData.content,
+            })
+        }
     } catch (error) {
-        console.error('Error fetching repository content:', error)
+        console.error('Error fetching gist content:', error)
         // Provide fallback content in case of fetch failure
         files.push({
             name: 'README.md',
             content:
-                '# Bun Basic Template\n\nFailed to load repository content. Please check your internet connection.',
+                '# Bun Basic Template\n\nFailed to load gist content. Please check your internet connection.',
         })
     }
 
@@ -48,7 +52,7 @@ async function fetchRepoContent(): Promise<File[]> {
 }
 
 // Export the files for the demo
-export const demoFiles = await fetchRepoContent()
+export const demoFiles = await fetchGistContent()
 
 // Fallback content in case the fetch fails during development
 export const fallbackFiles: File[] = [
@@ -74,7 +78,7 @@ export const fallbackFiles: File[] = [
         ),
     },
     {
-        name: 'src/index.ts',
+        name: 'index.ts',
         content: 'console.log("Hello from Bun!")',
     },
 ]
