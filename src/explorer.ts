@@ -162,7 +162,7 @@ function renderFileNode(
     view: EditorView,
     selectedFile: string | null,
 ) {
-    const indentation = level * 8 // Reduced from 16px to 8px per level
+    const indentation = 10 + level * 8 // Reduced from 16px to 8px per level
     const explorerState = view.state.field(fileExplorerState)
 
     if (node.isDirectory) {
@@ -172,7 +172,7 @@ function renderFileNode(
             'span',
             {
                 class: `cm-directory-caret${isExpanded ? ' expanded' : ''}`,
-                style: `display: flex; align-items: center; justify-content: center; width: 8px; height: 16px; line-height: 16px; text-align: center; user-select: none; font-size: 12px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
+                style: `display: flex; align-items: center; justify-content: center; width: 8px; height: 12px; line-height: 12px; text-align: center; user-select: none; font-size: 12px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
             },
             '›',
         )
