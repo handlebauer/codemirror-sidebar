@@ -1,6 +1,10 @@
-import { StateField, StateEffect } from '@codemirror/state'
+import { StateField, StateEffect, Compartment } from '@codemirror/state'
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { type SidebarPanelSpec, sidebarPanel } from './sidebar'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+import { markdown } from '@codemirror/lang-markdown'
+import { json } from '@codemirror/lang-json'
 import crelt from 'crelt'
 
 // Add debug logging helper
@@ -172,7 +176,7 @@ function renderFileNode(
             'span',
             {
                 class: `cm-directory-caret${isExpanded ? ' expanded' : ''}`,
-                style: `display: flex; align-items: center; justify-content: center; width: 8px; height: 12px; line-height: 12px; text-align: center; user-select: none; font-size: 12px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
+                style: `display: flex; align-items: center; justify-content: center; width: 8px; height: 16px; line-height: 16px; text-align: center; user-select: none; font-size: 12px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
             },
             '›',
         )
@@ -262,10 +266,45 @@ function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     debug('File explorer content rendered')
 }
 
+// Language detection based on file extension
+function getLanguageExtension(filename: string) {
+    const ext = filename.toLowerCase().split('.').pop()
+    switch (ext) {
+        case 'js':
+        case 'jsx':
+        case 'ts':
+        case 'tsx':
+            return javascript({ typescript: ext.startsWith('ts') })
+        case 'py':
+            return python()
+        case 'md':
+        case 'markdown':
+            return markdown()
+        case 'json':
+            return json()
+        default:
+            return null
+    }
+}
+
+// Create a compartment for language support
+const languageCompartment = new Compartment()
+
 function handleFileClick(file: File, view: EditorView) {
     debug('File clicked:', file.name)
+
+    // Get language extension for the file
+    const langExtension = getLanguageExtension(file.name)
+
+    // Create a transaction that combines all our changes
     view.dispatch({
-        effects: loadFileEffect.of(file.name),
+        effects: [
+            loadFileEffect.of(file.name),
+            // Only reconfigure if we have a language extension
+            ...(langExtension
+                ? [languageCompartment.reconfigure(langExtension)]
+                : []),
+        ],
         changes: {
             from: 0,
             to: view.state.doc.length,
@@ -277,7 +316,6 @@ function handleFileClick(file: File, view: EditorView) {
 
 const fileExplorerPlugin = ViewPlugin.fromClass(
     class {
-        constructor() {}
         update(update: ViewUpdate) {
             // If the fileExplorerState changed, trigger the panel update
             if (
@@ -299,5 +337,7 @@ export const fileExplorer = [
     fileExplorerState,
     fileExplorerPlugin,
     sidebarPanel.of(fileExplorerPanelSpec),
+    // Initialize language compartment with empty configuration
+    languageCompartment.of([]),
 ]
 export { loadFileEffect, updateFilesEffect }

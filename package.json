@@ -34,6 +34,9 @@
     },
     "dependencies": {
         "@codemirror/lang-javascript": "^6.2.3",
+        "@codemirror/lang-json": "^6.0.1",
+        "@codemirror/lang-markdown": "^6.3.2",
+        "@codemirror/lang-python": "^6.1.7",
         "@codemirror/state": "^6.4.0",
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.36.2",
