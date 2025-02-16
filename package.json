@@ -1,0 +1,33 @@
+{
+  "name": "sidebar",
+  "version": "0.1.1",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "env": "bun --print process.env",
+    "prepare": "husky",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "clean": "rm -rf dist",
+    "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
+    "bump": "bunx bumpp"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "@typescript-eslint/parser": "^8.2.0",
+    "eslint": "^9.9.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.5",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.2.0",
+    "zod": "^3.23.8"
+  },
+  "dependencies": {
+    "@logtape/logtape": "^0.4.3"
+  }
+}
