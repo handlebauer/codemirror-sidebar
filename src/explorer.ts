@@ -19,21 +19,13 @@ interface FileExplorerState {
 }
 
 const loadFileEffect = StateEffect.define<string>()
+const updateFilesEffect = StateEffect.define<File[]>()
 
 const fileExplorerState = StateField.define<FileExplorerState>({
     create() {
-        // Mock project files for now
+        // Start with empty files array
         return {
-            files: [
-                {
-                    name: 'main.js',
-                    content: "console.log('Hello from main.js');",
-                },
-                {
-                    name: 'utils.js',
-                    content: 'export function add(a, b) { return a + b; }',
-                },
-            ],
+            files: [],
             selectedFile: null,
         }
     },
@@ -42,6 +34,12 @@ const fileExplorerState = StateField.define<FileExplorerState>({
             if (effect.is(loadFileEffect)) {
                 // A file was selected
                 return { ...value, selectedFile: effect.value }
+            } else if (effect.is(updateFilesEffect)) {
+                // Files were updated
+                return {
+                    files: effect.value,
+                    selectedFile: effect.value[0]?.name || null,
+                }
             }
         }
         return value
@@ -70,6 +68,153 @@ const fileExplorerPanelSpec: SidebarPanelSpec = {
     },
 }
 
+// Add helper functions for file hierarchy
+interface FileNode {
+    name: string
+    path: string
+    content?: string
+    isDirectory: boolean
+    children: FileNode[]
+}
+
+function buildFileTree(files: File[]): FileNode[] {
+    const root: FileNode[] = []
+    const directories: { [path: string]: FileNode } = {}
+
+    // Sort files to ensure directories are processed in order
+    const sortedFiles = [...files].sort((a, b) => a.name.localeCompare(b.name))
+
+    sortedFiles.forEach(file => {
+        const parts = file.name.split('/')
+        let currentPath = ''
+        let currentChildren = root
+
+        // Process each part of the path
+        parts.forEach((part, index) => {
+            currentPath = currentPath ? `${currentPath}/${part}` : part
+            const isLastPart = index === parts.length - 1
+
+            if (isLastPart) {
+                // This is a file
+                currentChildren.push({
+                    name: part,
+                    path: currentPath,
+                    content: file.content,
+                    isDirectory: false,
+                    children: [],
+                })
+            } else {
+                // This is a directory
+                if (!directories[currentPath]) {
+                    const dirNode: FileNode = {
+                        name: part,
+                        path: currentPath,
+                        isDirectory: true,
+                        children: [],
+                    }
+                    directories[currentPath] = dirNode
+                    currentChildren.push(dirNode)
+                }
+                currentChildren = directories[currentPath].children
+            }
+        })
+    })
+
+    // Sort all directory children recursively
+    const sortNodes = (nodes: FileNode[]): FileNode[] => {
+        return nodes
+            .sort((a, b) => {
+                // Sort directories before files
+                if (a.isDirectory !== b.isDirectory) {
+                    return a.isDirectory ? -1 : 1
+                }
+                // Then sort alphabetically by name
+                return a.name.localeCompare(b.name)
+            })
+            .map(node => {
+                if (node.isDirectory) {
+                    node.children = sortNodes(node.children)
+                }
+                return node
+            })
+    }
+
+    return sortNodes(root)
+}
+
+function renderFileNode(
+    node: FileNode,
+    level: number,
+    container: HTMLElement,
+    view: EditorView,
+    selectedFile: string | null,
+) {
+    const indentation = level * 16 // 16px per level
+
+    if (node.isDirectory) {
+        // Render directory
+        const caretSpan = crelt(
+            'span',
+            {
+                class: 'cm-directory-caret',
+                style: 'display: inline-block; width: 12px; text-align: center; user-select: none; font-size: 14px; opacity: 0.6;',
+            },
+            '›',
+        )
+        const dirSpan = crelt(
+            'span',
+            {
+                class: 'cm-file-explorer-directory',
+                style: 'margin-left: 4px;',
+            },
+            node.name,
+        )
+        const dirItem = crelt(
+            'li',
+            {
+                class: 'cm-file-explorer-item cm-file-explorer-directory-item',
+                style: `padding-left: ${indentation}px`,
+            },
+            caretSpan,
+            dirSpan,
+        )
+        container.appendChild(dirItem)
+
+        // Render children
+        node.children.forEach(child =>
+            renderFileNode(child, level + 1, container, view, selectedFile),
+        )
+    } else {
+        // Render file
+        const fileSpan = crelt(
+            'span',
+            {
+                class: 'cm-file-explorer-file',
+            },
+            node.name,
+        )
+        const fileItem = crelt(
+            'li',
+            {
+                'data-file': node.path,
+                class: `cm-file-explorer-item${
+                    node.path === selectedFile
+                        ? ' cm-file-explorer-item-selected'
+                        : ''
+                }`,
+                style: `padding-left: ${indentation}px`,
+                onclick: () =>
+                    handleFileClick(
+                        { name: node.path, content: node.content! },
+                        view,
+                    ),
+            },
+            fileSpan,
+        )
+        container.appendChild(fileItem)
+    }
+}
+
 function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     debug('Rendering file explorer content')
     const explorerState = view.state.field(fileExplorerState)
@@ -82,28 +227,11 @@ function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     )
     debug('Selected file:', explorerState.selectedFile)
 
-    explorerState.files.forEach(file => {
-        const span = crelt(
-            'span',
-            { class: 'cm-file-explorer-item-name' },
-            file.name,
-        )
-
-        const li = crelt(
-            'li',
-            {
-                'data-file': file.name,
-                class: `cm-file-explorer-item${
-                    file.name === explorerState.selectedFile
-                        ? ' cm-file-explorer-item-selected'
-                        : ''
-                }`,
-                onclick: () => handleFileClick(file, view),
-            },
-            span,
-        )
-        fileList.appendChild(li)
-    })
+    // Build and render file tree
+    const fileTree = buildFileTree(explorerState.files)
+    fileTree.forEach(node =>
+        renderFileNode(node, 0, fileList, view, explorerState.selectedFile),
+    )
 
     dom.innerHTML = ''
     dom.appendChild(header)
@@ -149,4 +277,4 @@ export const fileExplorer = [
     fileExplorerPlugin,
     sidebarPanel.of(fileExplorerPanelSpec),
 ]
-export { loadFileEffect }
+export { loadFileEffect, updateFilesEffect }

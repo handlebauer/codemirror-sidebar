@@ -5,6 +5,7 @@ import {
     createSidebar,
     type SidebarOptions,
     toggleSidebarCommand,
+    toggleSidebarEffect,
 } from './sidebar'
 import { fileExplorer } from './explorer'
 import { javascript } from '@codemirror/lang-javascript' // Or a default language
@@ -106,3 +107,5 @@ export function createAISidebar(options: AISidebarOptions = {}): Extension[] {
 
     return extensions
 }
+
+export { toggleSidebarEffect }
