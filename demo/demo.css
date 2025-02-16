@@ -79,6 +79,10 @@ body {
     color: #5c6370; /* One Dark comment color */
 }
 
+.cm-lineNumbers {
+    min-width: 25px;
+}
+
 .cm-file-explorer-list {
     list-style: none;
     margin: 0;
