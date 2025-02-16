@@ -11,7 +11,7 @@ import crelt from 'crelt'
 const debug = (...args: unknown[]) => console.log('[Explorer]', ...args)
 
 // Define the File type
-interface File {
+export interface File {
     name: string
     content: string // Code content
 }
@@ -192,7 +192,7 @@ function renderFileNode(
             'li',
             {
                 class: 'cm-file-explorer-item cm-file-explorer-directory-item',
-                style: `padding-left: ${indentation}px; display: flex; align-items: center;`,
+                style: `padding: 1.5px 0; padding-left: ${indentation}px; display: flex; align-items: center;`,
                 onclick: () => {
                     view.dispatch({
                         effects: toggleDirEffect.of(node.path),
@@ -229,7 +229,7 @@ function renderFileNode(
                         ? ' cm-file-explorer-item-selected'
                         : ''
                 }`,
-                style: `padding-left: ${indentation}px`,
+                style: `padding: 3px 0; padding-left: ${indentation}px`,
                 onclick: () =>
                     handleFileClick(
                         { name: node.path, content: node.content! },
