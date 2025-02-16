@@ -16,10 +16,12 @@ interface File {
 interface FileExplorerState {
     files: File[]
     selectedFile: string | null
+    expandedDirs: Set<string> // Track expanded directory paths
 }
 
 const loadFileEffect = StateEffect.define<string>()
 const updateFilesEffect = StateEffect.define<File[]>()
+const toggleDirEffect = StateEffect.define<string>() // Toggle directory expanded state
 
 const fileExplorerState = StateField.define<FileExplorerState>({
     create() {
@@ -27,6 +29,7 @@ const fileExplorerState = StateField.define<FileExplorerState>({
         return {
             files: [],
             selectedFile: null,
+            expandedDirs: new Set(), // Start with all directories collapsed
         }
     },
     update(value, transaction) {
@@ -37,9 +40,19 @@ const fileExplorerState = StateField.define<FileExplorerState>({
             } else if (effect.is(updateFilesEffect)) {
                 // Files were updated
                 return {
+                    ...value,
                     files: effect.value,
                     selectedFile: effect.value[0]?.name || null,
                 }
+            } else if (effect.is(toggleDirEffect)) {
+                // Toggle directory expanded state
+                const newExpandedDirs = new Set(value.expandedDirs)
+                if (newExpandedDirs.has(effect.value)) {
+                    newExpandedDirs.delete(effect.value)
+                } else {
+                    newExpandedDirs.add(effect.value)
+                }
+                return { ...value, expandedDirs: newExpandedDirs }
             }
         }
         return value
@@ -150,14 +163,16 @@ function renderFileNode(
     selectedFile: string | null,
 ) {
     const indentation = level * 16 // 16px per level
+    const explorerState = view.state.field(fileExplorerState)
 
     if (node.isDirectory) {
         // Render directory
+        const isExpanded = explorerState.expandedDirs.has(node.path)
         const caretSpan = crelt(
             'span',
             {
-                class: 'cm-directory-caret',
-                style: 'display: inline-block; width: 12px; text-align: center; user-select: none; font-size: 14px; opacity: 0.6;',
+                class: `cm-directory-caret${isExpanded ? ' expanded' : ''}`,
+                style: `display: inline-block; width: 12px; text-align: center; user-select: none; font-size: 14px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
             },
             '›',
         )
@@ -165,7 +180,7 @@ function renderFileNode(
             'span',
             {
                 class: 'cm-file-explorer-directory',
-                style: 'margin-left: 4px;',
+                style: 'margin-left: 4px; user-select: none;',
             },
             node.name,
         )
@@ -174,22 +189,30 @@ function renderFileNode(
             {
                 class: 'cm-file-explorer-item cm-file-explorer-directory-item',
                 style: `padding-left: ${indentation}px`,
+                onclick: () => {
+                    view.dispatch({
+                        effects: toggleDirEffect.of(node.path),
+                    })
+                },
             },
             caretSpan,
             dirSpan,
         )
         container.appendChild(dirItem)
 
-        // Render children
-        node.children.forEach(child =>
-            renderFileNode(child, level + 1, container, view, selectedFile),
-        )
+        // Only render children if directory is expanded
+        if (isExpanded) {
+            node.children.forEach(child =>
+                renderFileNode(child, level + 1, container, view, selectedFile),
+            )
+        }
     } else {
         // Render file
         const fileSpan = crelt(
             'span',
             {
                 class: 'cm-file-explorer-file',
+                style: 'user-select: none;',
             },
             node.name,
         )
@@ -218,7 +241,7 @@ function renderFileNode(
 function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     debug('Rendering file explorer content')
     const explorerState = view.state.field(fileExplorerState)
-    const header = crelt('h3', {}, 'Files')
+    const header = crelt('h3', { style: 'user-select: none;' }, 'Files')
     const fileList = crelt('ul', { class: 'cm-file-explorer-list' })
 
     debug(
