@@ -142,7 +142,7 @@ body {
     margin: 0;
     padding: 4px 8px 2px;
     letter-spacing: 0.5px;
-    color: #5c6370; /* One Dark comment color */
+    color: #8a91a0; /* One Dark comment color, lightened more */
 }
 
 .cm-lineNumbers {
