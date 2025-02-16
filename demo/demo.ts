@@ -17,11 +17,19 @@ const view = new EditorView({
                 backgroundColor: '#2c313a', // One Dark lighter sidebar background
                 id: 'file-explorer',
             },
+            toggleKeymaps: {
+                mac: 'Cmd-b',
+                win: 'Ctrl-b',
+            },
         }),
         // AI assistant sidebar on the right
         createAISidebar({
             width: '300px',
             backgroundColor: '#2c313a', // One Dark lighter sidebar background
+            toggleKeymaps: {
+                mac: 'Cmd-r',
+                win: 'Ctrl-r',
+            },
         }),
         oneDark,
     ],
