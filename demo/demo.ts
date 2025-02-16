@@ -1,5 +1,5 @@
 import { EditorView, basicSetup } from 'codemirror'
-import { sidebarExtension } from '../src/index'
+import { sidebarExtension, createAISidebar } from '../src/index'
 import { demoTheme } from './theme'
 import { toggleSidebarCommand } from '../src/sidebar'
 
@@ -8,22 +8,51 @@ const view = new EditorView({
     doc: 'console.log("Hello world")',
     extensions: [
         basicSetup,
-        sidebarExtension(), // Using the new unified extension
+        // File explorer sidebar on the left
+        sidebarExtension({
+            sidebarOptions: {
+                dock: 'left',
+                width: '250px',
+                backgroundColor: 'var(--cm-sidebar-background)',
+                id: 'file-explorer',
+            },
+        }),
+        // AI assistant sidebar on the right
+        createAISidebar({
+            width: '300px',
+            backgroundColor: 'var(--cm-sidebar-background)',
+        }),
         demoTheme,
     ],
     parent: document.querySelector('.demo-container') as Element,
 })
 
-// Create and add the toggle button
-const toggleButton = document.createElement('button')
-toggleButton.textContent = 'Toggle Sidebar'
-toggleButton.className = 'toggle-button'
-toggleButton.onclick = () => toggleSidebarCommand(view)
+// Create and add the toggle buttons
+const createToggleButton = (text: string, sidebarId: string) => {
+    const button = document.createElement('button')
+    button.textContent = text
+    button.className = 'toggle-button'
+    button.onclick = () => toggleSidebarCommand(view, sidebarId)
+    return button
+}
 
-// Add button to container
+const fileExplorerButton = createToggleButton(
+    'Toggle File Explorer',
+    'file-explorer',
+)
+const aiAssistantButton = createToggleButton(
+    'Toggle AI Assistant',
+    'ai-assistant',
+)
+
+// Add buttons to container
 const container = document.querySelector('.demo-container')
 if (container) {
-    container.insertBefore(toggleButton, view.dom)
+    const buttonContainer = document.createElement('div')
+    buttonContainer.className = 'button-container'
+    buttonContainer.appendChild(fileExplorerButton)
+    buttonContainer.appendChild(aiAssistantButton)
+    container.insertBefore(buttonContainer, view.dom)
 }
 
 // Make view available in console for debugging
