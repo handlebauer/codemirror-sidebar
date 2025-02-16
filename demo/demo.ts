@@ -1,25 +1,29 @@
 import { EditorView, basicSetup } from 'codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-import { sidebar, toggleSidebarCommand } from '../src/index'
+import { sidebarExtension } from '../src/index'
 import { demoTheme } from './theme'
+import { toggleSidebarCommand } from '../src/sidebar'
+
+// Create the editor instance
 const view = new EditorView({
     doc: 'console.log("Hello world")',
-    extensions: [basicSetup, javascript(), sidebar, demoTheme],
-    parent: document.body,
+    extensions: [
+        basicSetup,
+        sidebarExtension(), // Using the new unified extension
+        demoTheme,
+    ],
+    parent: document.querySelector('.demo-container') as Element,
 })
 
-// Add a button to toggle the sidebar
+// Create and add the toggle button
 const toggleButton = document.createElement('button')
 toggleButton.textContent = 'Toggle Sidebar'
 toggleButton.className = 'toggle-button'
 toggleButton.onclick = () => toggleSidebarCommand(view)
 
+// Add button to container
 const container = document.querySelector('.demo-container')
 if (container) {
-    container.insertBefore(toggleButton, null)
-    container.appendChild(view.dom)
-} else {
-    document.body.insertBefore(toggleButton, view.dom)
+    container.insertBefore(toggleButton, view.dom)
 }
 
 // Make view available in console for debugging

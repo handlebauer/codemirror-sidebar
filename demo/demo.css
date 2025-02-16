@@ -41,10 +41,11 @@ body {
 }
 
 .cm-sidebar {
-    background-color: '#21222c'; /* Matching gutter color */
+    background-color: #21222c;
     color: #f8f8f2;
     border: none !important;
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
 }
 
 .cm-sidebar-explorer,
@@ -60,4 +61,99 @@ body {
 .cm-sidebar-assistant:hover {
     background-color: #343746;
     border-radius: 4px;
+}
+
+/* Base editor styles */
+.cm-editor {
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 600px;
+}
+
+.cm-scroller {
+    height: 100% !important;
+}
+
+/* Sidebar styling */
+.cm-sidebar {
+    /* Core sidebar styles */
+    background-color: var(--sidebar-bg, #21222c);
+    color: var(--sidebar-text, #f8f8f2);
+    border-left: 1px solid var(--sidebar-border, #44475a);
+    padding: 1rem;
+
+    /* Optional effects */
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar panels */
+.cm-sidebar-panel {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cm-sidebar-panel:hover {
+    background-color: var(--sidebar-hover-bg, rgba(255, 255, 255, 0.1));
+}
+
+/* Individual panel customization */
+.cm-sidebar-explorer {
+    border-bottom: 1px solid var(--sidebar-separator, #44475a);
+}
+
+.cm-sidebar-assistant {
+    border-bottom: 1px solid var(--sidebar-separator, #44475a);
+}
+
+/* Toggle button styling */
+.toggle-button {
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    background-color: var(--button-bg, #4a4a4a);
+    color: var(--button-text, white);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.toggle-button:hover {
+    background-color: var(--button-hover-bg, #666);
+}
+
+/* Demo container */
+.demo-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* Demo page styles */
+body {
+    margin: 0;
+    font-family:
+        system-ui,
+        -apple-system,
+        sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* CSS Variables for easy customization */
+:root {
+    /* Sidebar colors */
+    --sidebar-bg: #21222c;
+    --sidebar-text: #f8f8f2;
+    --sidebar-border: #44475a;
+    --sidebar-separator: #44475a;
+    --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+
+    /* Button colors */
+    --button-bg: #4a4a4a;
+    --button-text: white;
+    --button-hover-bg: #666;
 }
