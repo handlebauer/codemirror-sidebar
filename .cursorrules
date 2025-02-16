@@ -1,6 +1,5 @@
 # Sidebar CodeMirror Extension
 
-- Never directly style the editor in /src files.
-- Instead, assume the end user will provide a custom CSS file to style the editor.
-- Just like we are doing in /demo
-- The exception to this rule is for structural styles (e.g. relative positioning)
+- Never directly style the editor in /src files
+- Instead, assume the end user will provide theming in ./demo to style the editor
+- The exception to this rule is for structural styles (e.g. positioning)

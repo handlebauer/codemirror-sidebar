@@ -1,6 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror'
 import { sidebarExtension, createAISidebar } from '../src/index'
-import { demoTheme } from './theme'
+import { oneDark } from '@codemirror/theme-one-dark'
 import { toggleSidebarCommand } from '../src/sidebar'
 
 // Create the editor instance
@@ -14,16 +14,16 @@ const view = new EditorView({
                 dock: 'left',
                 overlay: false,
                 width: '250px',
-                backgroundColor: 'var(--cm-sidebar-background)',
+                backgroundColor: '#2c313a', // One Dark lighter sidebar background
                 id: 'file-explorer',
             },
         }),
         // AI assistant sidebar on the right
         createAISidebar({
             width: '300px',
-            backgroundColor: 'var(--cm-sidebar-background)',
+            backgroundColor: '#2c313a', // One Dark lighter sidebar background
         }),
-        demoTheme,
+        oneDark,
     ],
     parent: document.querySelector('.demo-container') as Element,
 })

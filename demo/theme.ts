@@ -36,33 +36,21 @@ export const demoTheme = EditorView.theme(
             color: 'var(--cm-sidebar-text)',
         },
         '.cm-sidebar-explorer-content': {
-            padding: '8px',
             '& h3': {
-                margin: '0 0 8px 0',
-                fontSize: '1em',
-                fontWeight: 'bold',
                 color: 'var(--cm-sidebar-text)',
             },
         },
         '.cm-file-explorer-list': {
             listStyle: 'none',
-            margin: 0,
-            padding: 0,
         },
         '.cm-file-explorer-item': {
-            padding: '4px 8px',
             cursor: 'pointer',
-            borderRadius: '4px',
             '&:hover': {
                 backgroundColor:
                     'var(--cm-sidebar-item-hover-background, rgba(255, 255, 255, 0.1))',
             },
         },
-        '.cm-file-explorer-item-selected': {
-            backgroundColor:
-                'var(--cm-sidebar-item-selected-background, rgba(255, 255, 255, 0.15))',
-            fontWeight: 'bold',
-        },
+        '.cm-file-explorer-item-selected': {},
     },
-    { dark: true },
+    { dark: false },
 )

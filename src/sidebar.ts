@@ -66,7 +66,7 @@ const createSidebarState = (id: string, initialOptions: SidebarOptions) => {
     return StateField.define<SidebarState>({
         create: () => ({
             visible: false,
-            options: initialOptions, // use the provided options here
+            options: initialOptions,
             activePanelId: null,
         }),
         update(value, tr) {
@@ -130,13 +130,15 @@ const createSidebarPlugin = (id: string) =>
                     class: 'cm-sidebar-panel-container',
                 })
                 this.dom.appendChild(this.panelContainer)
-                view.dom.appendChild(this.dom)
-                view.dom.style.position = 'relative'
 
+                // Apply styles before adding to DOM to prevent flash of visible content
                 const stateField = sidebarStates.get(id)!
                 const state = view.state.field(stateField)
+                this.applySidebarStyles(state.options, state.visible)
                 this.updateVisibility(state.visible)
-                this.applySidebarStyles(state.options)
+
+                view.dom.appendChild(this.dom)
+                view.dom.style.position = 'relative'
                 this.renderActivePanel(view, state)
                 debug('Sidebar plugin initialized:', id)
             }
@@ -149,10 +151,11 @@ const createSidebarPlugin = (id: string) =>
                 if (state.visible !== oldState.visible) {
                     debug('Visibility changed:', id, state.visible)
                     this.updateVisibility(state.visible)
+                    this.applySidebarStyles(state.options, state.visible)
                 }
                 if (state.options !== oldState.options) {
                     debug('Options changed:', id, state.options)
-                    this.applySidebarStyles(state.options)
+                    this.applySidebarStyles(state.options, state.visible)
                 }
                 if (state.activePanelId !== oldState.activePanelId) {
                     debug('Active panel changed:', id, state.activePanelId)
@@ -176,20 +179,23 @@ const createSidebarPlugin = (id: string) =>
                 this.dom.style.display = visible ? 'block' : 'none'
             }
 
-            private applySidebarStyles(options: SidebarOptions) {
+            private applySidebarStyles(
+                options: SidebarOptions,
+                visible: boolean,
+            ) {
                 const { width, backgroundColor, dock, overlay } = options
                 const editor = this.dom.parentElement
 
                 if (editor) {
                     if (!overlay) {
-                        // make the CodeMirror container a flexbox so that its children (the editor and sidebar) are flex items
+                        // Always use flex layout in non-overlay mode, regardless of visibility
                         Object.assign(editor.style, {
                             display: 'flex',
                             flexDirection: 'row',
                             position: 'relative',
-                            height: '100%',
                         })
                     } else {
+                        // For overlay mode, keep the editor as block
                         Object.assign(editor.style, {
                             display: 'block',
                             position: 'relative',
@@ -197,39 +203,39 @@ const createSidebarPlugin = (id: string) =>
                     }
                 }
 
+                // Base styles that apply regardless of visibility
+                Object.assign(this.dom.style, {
+                    height: '100%',
+                    background: backgroundColor,
+                    flexShrink: '0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                })
+
                 if (!overlay) {
-                    // In non-overlay mode, let the sidebar be part of the flex flow.
-                    // Use flex order to put it on the left or right.
+                    // Non-overlay mode styles
                     Object.assign(this.dom.style, {
                         position: 'relative',
                         order: dock === 'left' ? -1 : 1,
-                        height: '100%',
-                        width: width,
-                        background: backgroundColor,
                         zIndex: '1',
-                        padding: '10px 20px',
-                        flexShrink: '0',
-                        display: 'flex',
-                        flexDirection: 'column',
+                        width: visible ? width : '0',
+                        overflow: 'hidden',
+                        opacity: visible ? '1' : '0',
                     })
                 } else {
-                    // Overlay mode: position absolutely
+                    // Overlay mode styles
                     Object.assign(this.dom.style, {
                         position: 'absolute',
-                        [dock === 'left' ? 'left' : 'right']: '0',
+                        [dock === 'left' ? 'left' : 'right']: visible
+                            ? '0'
+                            : `-${width}`,
                         top: '0',
-                        height: '100%',
-                        width: width,
-                        background: backgroundColor,
                         zIndex: '10',
-                        padding: '10px 20px',
-                        flexShrink: '0',
-                        display: 'flex',
-                        flexDirection: 'column',
+                        width: width,
                     })
                 }
 
-                // Ensure the editor content takes the remaining space in non-overlay mode.
+                // Handle editor content spacing in non-overlay mode
                 if (!overlay && editor) {
                     const editorContent = editor.querySelector(
                         '.cm-scroller',

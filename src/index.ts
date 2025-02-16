@@ -14,7 +14,8 @@ interface SidebarExtensionOptions {
 export function sidebarExtension(
     options: SidebarExtensionOptions = {},
 ): Extension[] {
-    const { language = javascript(), sidebarOptions } = options
+    const { language = javascript({ typescript: true }), sidebarOptions } =
+        options
 
     const extensions: Extension[] = [
         keymap.of(defaultKeymap),
