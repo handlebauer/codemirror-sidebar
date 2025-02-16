@@ -21,11 +21,13 @@ interface FileExplorerState {
     files: File[]
     selectedFile: string | null
     expandedDirs: Set<string> // Track expanded directory paths
+    projectName?: string
 }
 
 const loadFileEffect = StateEffect.define<string>()
 const updateFilesEffect = StateEffect.define<File[]>()
 const toggleDirEffect = StateEffect.define<string>() // Toggle directory expanded state
+const setProjectNameEffect = StateEffect.define<string>()
 
 const fileExplorerState = StateField.define<FileExplorerState>({
     create() {
@@ -34,6 +36,7 @@ const fileExplorerState = StateField.define<FileExplorerState>({
             files: [],
             selectedFile: null,
             expandedDirs: new Set(), // Start with all directories collapsed
+            projectName: undefined,
         }
     },
     update(value, transaction) {
@@ -57,6 +60,8 @@ const fileExplorerState = StateField.define<FileExplorerState>({
                     newExpandedDirs.add(effect.value)
                 }
                 return { ...value, expandedDirs: newExpandedDirs }
+            } else if (effect.is(setProjectNameEffect)) {
+                return { ...value, projectName: effect.value }
             }
         }
         return value
@@ -184,7 +189,7 @@ function renderFileNode(
             'span',
             {
                 class: 'cm-file-explorer-directory',
-                style: 'margin-left: 4px; user-select: none; display: flex; align-items: center;',
+                style: 'margin-left: 4px; user-select: none; display: flex; align-items: center; font-size: 13px; font-weight: 500;',
             },
             node.name,
         )
@@ -216,7 +221,7 @@ function renderFileNode(
             'span',
             {
                 class: 'cm-file-explorer-file',
-                style: 'user-select: none; margin-left: 12px;', // 8px (caret) + 4px (matching directory margin)
+                style: 'user-select: none; margin-left: 12px; font-size: 13px; font-weight: 500;', // 8px (caret) + 4px (matching directory margin)
             },
             node.name,
         )
@@ -245,7 +250,13 @@ function renderFileNode(
 function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     debug('Rendering file explorer content')
     const explorerState = view.state.field(fileExplorerState)
-    const header = crelt('h3', { style: 'user-select: none;' }, 'Files')
+    const header = crelt(
+        'h3',
+        {
+            style: 'user-select: none; text-transform: uppercase; font-size: 13px; font-weight: 800; margin: 0; padding: 4px 8px 3px; letter-spacing: 0.5px; color: #cdc8d0;',
+        },
+        explorerState.projectName || 'Files',
+    )
     const fileList = crelt('ul', { class: 'cm-file-explorer-list' })
 
     debug(
@@ -340,4 +351,4 @@ export const fileExplorer = [
     // Initialize language compartment with empty configuration
     languageCompartment.of([]),
 ]
-export { loadFileEffect, updateFilesEffect }
+export { loadFileEffect, updateFilesEffect, setProjectNameEffect }

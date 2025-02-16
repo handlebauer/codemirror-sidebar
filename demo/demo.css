@@ -131,18 +131,7 @@ body {
 
 /* File Explorer structural styles */
 .cm-sidebar-explorer-content {
-    font-size: 11px;
     padding: 0;
-}
-
-.cm-sidebar-explorer-content h3 {
-    font-size: 11px;
-    text-transform: uppercase;
-    font-weight: 800;
-    margin: 0;
-    padding: 4px 8px 3px;
-    letter-spacing: 0.5px;
-    color: #8a91a0; /* One Dark comment color, lightened more */
 }
 
 .cm-lineNumbers {
