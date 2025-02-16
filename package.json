@@ -1,33 +1,45 @@
 {
-  "name": "sidebar",
-  "version": "0.1.1",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "env": "bun --print process.env",
-    "prepare": "husky",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "clean": "rm -rf dist",
-    "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
-    "bump": "bunx bumpp"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@typescript-eslint/eslint-plugin": "^8.2.0",
-    "@typescript-eslint/parser": "^8.2.0",
-    "eslint": "^9.9.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "husky": "^9.1.5",
-    "prettier": "^3.3.3",
-    "typescript-eslint": "^8.2.0",
-    "zod": "^3.23.8"
-  },
-  "dependencies": {
-    "@logtape/logtape": "^0.4.3"
-  }
+    "name": "@hbauer/codemirror-sidebar",
+    "version": "0.1.1",
+    "main": "dist/index.js",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "env": "bun --print process.env",
+        "prepare": "husky",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "clean": "rm -rf dist",
+        "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
+        "bump": "bunx bumpp"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@typescript-eslint/eslint-plugin": "^8.2.0",
+        "@typescript-eslint/parser": "^8.2.0",
+        "eslint": "^9.9.1",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-prettier": "^5.2.1",
+        "husky": "^9.1.5",
+        "prettier": "^3.3.3",
+        "typescript-eslint": "^8.2.0",
+        "zod": "^3.23.8",
+        "vite": "^6.1.0",
+        "@types/node": "^20.11.19"
+    },
+    "dependencies": {
+        "@codemirror/lang-javascript": "^6.2.3",
+        "@codemirror/state": "^6.4.0",
+        "@codemirror/theme-one-dark": "^6.1.2",
+        "@codemirror/view": "^6.36.2",
+        "@logtape/logtape": "^0.4.3",
+        "codemirror": "^6.0.1",
+        "crelt": "^1.0.6",
+        "dedent": "^1.5.3"
+    }
 }

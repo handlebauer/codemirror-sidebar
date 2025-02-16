@@ -1,4 +1,4 @@
-export class AppError extends Error {
+export class ExtensionError extends Error {
     constructor(
         message: string,
         public code: string,
@@ -9,35 +9,20 @@ export class AppError extends Error {
     }
 }
 
-export class NotFoundError extends AppError {
-    constructor(message = 'Resource not found') {
-        super(message, 'NOT_FOUND')
-    }
-}
-
-export class ValidationError extends AppError {
+export class ValidationError extends ExtensionError {
     constructor(message = 'Validation failed') {
         super(message, 'VALIDATION_ERROR')
     }
 }
 
-export class UnauthorizedError extends AppError {
-    constructor(message = 'Unauthorized access') {
-        super(message, 'UNAUTHORIZED')
-    }
-}
-
-export class DatabaseError extends AppError {
-    constructor(message = 'Database operation failed') {
-        super(message, 'DATABASE_ERROR')
-    }
-}
-
-export function handleError(error: unknown): AppError {
-    if (error instanceof AppError) {
+export function handleError(error: unknown): ExtensionError {
+    if (error instanceof ExtensionError) {
         return error
     }
 
     console.error('Unhandled error:', error)
-    return new AppError('An unexpected error occurred', 'INTERNAL_SERVER_ERROR')
+    return new ExtensionError(
+        'An unexpected error occurred',
+        'INTERNAL_SERVER_ERROR',
+    )
 }
