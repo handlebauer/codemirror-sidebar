@@ -22,6 +22,7 @@ interface SidebarOptions {
     backgroundColor?: string
     dock?: DockPosition
     id: string // Make id required
+    overlay?: boolean // Whether the sidebar overlays the editor or pushes it
 }
 
 interface SidebarState {
@@ -34,6 +35,7 @@ interface SidebarState {
 const defaultSidebarOptions: Omit<SidebarOptions, 'id'> = {
     width: '250px',
     backgroundColor: '#21222c',
+    overlay: true, // Default to overlay behavior
 }
 
 // -- FACETS ------------------------------------------------------------
@@ -60,16 +62,15 @@ const setActivePanelEffect = StateEffect.define<SetActivePanelConfig>()
 const sidebarStates = new Map<string, StateField<SidebarState>>()
 
 // Create a function to generate a unique state field for each sidebar
-const createSidebarState = (id: string) => {
+const createSidebarState = (id: string, initialOptions: SidebarOptions) => {
     return StateField.define<SidebarState>({
         create: () => ({
             visible: false,
-            options: { ...defaultSidebarOptions, id },
+            options: initialOptions, // use the provided options here
             activePanelId: null,
         }),
         update(value, tr) {
             let newState = value
-            debug('updateSidebarState', newState)
             for (const e of tr.effects) {
                 if (e.is(toggleSidebarEffect) && e.value.id === id) {
                     newState = { ...newState, visible: e.value.visible }
@@ -176,17 +177,71 @@ const createSidebarPlugin = (id: string) =>
             }
 
             private applySidebarStyles(options: SidebarOptions) {
-                const { width, backgroundColor, dock } = options
-                Object.assign(this.dom.style, {
-                    position: 'absolute',
-                    [dock === 'left' ? 'left' : 'right']: '0',
-                    top: '0',
-                    height: '100%',
-                    width: width,
-                    background: backgroundColor,
-                    zIndex: '10',
-                    padding: '10px 20px',
-                })
+                const { width, backgroundColor, dock, overlay } = options
+                const editor = this.dom.parentElement
+
+                if (editor) {
+                    if (!overlay) {
+                        // make the CodeMirror container a flexbox so that its children (the editor and sidebar) are flex items
+                        Object.assign(editor.style, {
+                            display: 'flex',
+                            flexDirection: 'row',
+                            position: 'relative',
+                            height: '100%',
+                        })
+                    } else {
+                        Object.assign(editor.style, {
+                            display: 'block',
+                            position: 'relative',
+                        })
+                    }
+                }
+
+                if (!overlay) {
+                    // In non-overlay mode, let the sidebar be part of the flex flow.
+                    // Use flex order to put it on the left or right.
+                    Object.assign(this.dom.style, {
+                        position: 'relative',
+                        order: dock === 'left' ? -1 : 1,
+                        height: '100%',
+                        width: width,
+                        background: backgroundColor,
+                        zIndex: '1',
+                        padding: '10px 20px',
+                        flexShrink: '0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                    })
+                } else {
+                    // Overlay mode: position absolutely
+                    Object.assign(this.dom.style, {
+                        position: 'absolute',
+                        [dock === 'left' ? 'left' : 'right']: '0',
+                        top: '0',
+                        height: '100%',
+                        width: width,
+                        background: backgroundColor,
+                        zIndex: '10',
+                        padding: '10px 20px',
+                        flexShrink: '0',
+                        display: 'flex',
+                        flexDirection: 'column',
+                    })
+                }
+
+                // Ensure the editor content takes the remaining space in non-overlay mode.
+                if (!overlay && editor) {
+                    const editorContent = editor.querySelector(
+                        '.cm-scroller',
+                    ) as HTMLElement
+                    if (editorContent) {
+                        Object.assign(editorContent.style, {
+                            flex: '1',
+                            width: 'auto',
+                            position: 'relative',
+                        })
+                    }
+                }
             }
 
             private renderActivePanel(view: EditorView, state: SidebarState) {
@@ -228,15 +283,14 @@ export function createSidebar(options: SidebarOptions): Extension[] {
 
     // Create a new state field for this sidebar if it doesn't exist
     if (!sidebarStates.has(id)) {
-        sidebarStates.set(id, createSidebarState(id))
+        sidebarStates.set(id, createSidebarState(id, mergedOptions))
     }
-
     const stateField = sidebarStates.get(id)!
 
     return [
         stateField,
         createSidebarPlugin(id),
-        // Initial options
+        // (Optional: you can keep the updateListener for things like panel switching)
         EditorView.updateListener.of(update => {
             const hasToggleEffect = update.transactions.some(tr =>
                 tr.effects.some(
@@ -246,14 +300,6 @@ export function createSidebar(options: SidebarOptions): Extension[] {
                         e.value.visible,
                 ),
             )
-
-            // Dispatch initial options
-            if (update.transactions.length === 0) {
-                update.view.dispatch({
-                    effects: updateSidebarOptionsEffect.of(mergedOptions),
-                })
-            }
-
             if (hasToggleEffect) {
                 update.view.dispatch({
                     effects: [

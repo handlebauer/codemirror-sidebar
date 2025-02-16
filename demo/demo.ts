@@ -12,6 +12,7 @@ const view = new EditorView({
         sidebarExtension({
             sidebarOptions: {
                 dock: 'left',
+                overlay: false,
                 width: '250px',
                 backgroundColor: 'var(--cm-sidebar-background)',
                 id: 'file-explorer',

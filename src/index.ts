@@ -43,6 +43,7 @@ export function createAISidebar(
         dock: 'right',
         width: '300px',
         id: 'ai-assistant',
+        overlay: true, // AI sidebar defaults to overlay mode
         ...options,
     })
 }

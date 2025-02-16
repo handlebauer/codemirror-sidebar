@@ -19,9 +19,7 @@ body {
     font-family:
         -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
         Cantarell, sans-serif;
-    background-color: var(
-        --cm-base-background-color
-    ); /* Or a different background */
+    background-color: var(--cm-base-background-color);
     color: var(--cm-base-text-color);
 }
 
@@ -52,11 +50,13 @@ body {
     background-color: #666;
 }
 
+/* Base editor styles */
 .cm-editor {
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     height: 600px;
+    position: relative; /* Ensure proper stacking context */
 }
 
 .cm-scroller {
@@ -67,12 +67,13 @@ body {
     font-family: monospace;
 }
 
+/* Cursor and selection styles */
 .cm-cursor,
 .cm-dropCursor {
     border-left-color: var(--cm-base-caret-color);
 }
 
-&.cm-focused .cm-selectionBackground,
+.cm-focused .cm-selectionBackground,
 .cm-selectionBackground {
     background-color: var(--cm-base-selection-background);
 }
@@ -98,7 +99,11 @@ body {
     color: var(--cm-sidebar-text);
     border: none !important;
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
-    padding: 10px 20px;
+}
+
+.cm-sidebar-panel-container {
+    height: 100%;
+    overflow-y: auto;
 }
 
 /* File Explorer Specific Styles */
@@ -141,18 +146,6 @@ body {
 
 .cm-sidebar[style*='right'] .cm-sidebar-panel-container {
     border-left: 1px solid var(--cm-sidebar-item-border-bottom);
-}
-
-/* Base editor styles */
-.cm-editor {
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    height: 600px;
-}
-
-.cm-scroller {
-    height: 100% !important;
 }
 
 /* Sidebar styling */
