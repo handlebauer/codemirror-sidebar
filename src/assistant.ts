@@ -483,6 +483,51 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     tabsGroup.appendChild(createTab('Assistant', 'assistant'))
     tabsGroup.appendChild(createTab('Agent', 'agent'))
 
+    // Create right side controls container
+    const controlsContainer = crelt('div')
+    Object.assign(controlsContainer.style, {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    })
+
+    // Add model picker
+    const modelSelect = crelt('select') as HTMLSelectElement
+    Object.assign(modelSelect.style, {
+        background: 'transparent',
+        border: 'transparent',
+        borderRadius: '4px',
+        color: 'var(--cm-text-color, #cdc8d0)',
+        padding: '4px 24px 4px 8px',
+        fontSize: '13px',
+        cursor: 'pointer',
+        outline: 'none',
+        appearance: 'none',
+        backgroundImage:
+            'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20fill%3D%22%23cdc8d0%22%20d%3D%22M7%2010L3.5%206h7L7%2010z%22%2F%3E%3C%2Fsvg%3E")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 4px center',
+        textAlign: 'right',
+        direction: 'rtl',
+    })
+
+    AVAILABLE_MODELS.forEach(model => {
+        const option = crelt('option', { value: model.id }) as HTMLOptionElement
+        option.textContent = model.name
+        option.style.direction = 'ltr'
+        option.style.textAlign = 'right'
+        if (model.id === state.selectedModel) {
+            option.selected = true
+        }
+        modelSelect.appendChild(option)
+    })
+
+    modelSelect.addEventListener('change', () => {
+        view.dispatch({
+            effects: selectModelEffect.of(modelSelect.value as ModelId),
+        })
+    })
+
     // Add settings button
     const settingsButton = crelt('button', {}, '⚙️')
     Object.assign(settingsButton.style, {
@@ -493,7 +538,6 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         cursor: 'pointer',
         opacity: '0.7',
         transition: 'opacity 0.2s',
-        marginLeft: '8px',
     })
 
     settingsButton.addEventListener('mouseover', () => {
@@ -510,8 +554,10 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         })
     })
 
+    controlsContainer.appendChild(modelSelect)
+    controlsContainer.appendChild(settingsButton)
     tabsContainer.appendChild(tabsGroup)
-    tabsContainer.appendChild(settingsButton)
+    tabsContainer.appendChild(controlsContainer)
     dom.appendChild(tabsContainer)
 
     // Add border right after tabs
