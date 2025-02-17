@@ -2,7 +2,7 @@ import { EditorView } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import crelt from 'crelt'
-import { parseCodeBlocks } from '../../codeblock'
+import { parseCodeBlocks } from './codeblock'
 import {
     assistantState,
     toggleSettingsEffect,
@@ -29,6 +29,19 @@ const debug = (...args: unknown[]) =>
 
 export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     const state = view.state.field(assistantState)
+
+    // Add keyframe animation for spinner if it doesn't exist (moved from renderMessage)
+    if (!document.querySelector('#cm-spin-keyframes')) {
+        const style = document.createElement('style')
+        style.id = 'cm-spin-keyframes'
+        style.textContent = `
+            @keyframes cm-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `
+        document.head.appendChild(style)
+    }
 
     if (state.showSettings) {
         renderSettingsPanel(dom, view)
@@ -470,19 +483,6 @@ export function renderMessage(
         const spinner = crelt('div')
         Object.assign(spinner.style, styles.spinnerStyles)
 
-        // Add keyframe animation for spinner if it doesn't exist
-        if (!document.querySelector('#cm-spin-keyframes')) {
-            const style = document.createElement('style')
-            style.id = 'cm-spin-keyframes'
-            style.textContent = `
-                @keyframes cm-spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `
-            document.head.appendChild(style)
-        }
-
         loadingContainer.appendChild(spinner)
         container.appendChild(loadingContainer)
     }
@@ -498,11 +498,11 @@ export function renderMessage(
         const contentEl = crelt('div')
         Object.assign(contentEl.style, styles.messageContentStyles)
 
-        // First, find all code blocks and their positions
+        // First, find all complete code blocks and their positions
         const codeBlocks = parseCodeBlocks(message.content)
         let lastPos = 0
         const segments: Array<{
-            type: 'text' | 'code'
+            type: 'text' | 'code' | 'incomplete-code'
             content: string
             language?: string | null
         }> = []
@@ -525,41 +525,59 @@ export function renderMessage(
             lastPos = block.to
         })
 
-        // Add remaining text after last code block
-        if (lastPos < message.content.length) {
-            segments.push({
-                type: 'text',
-                content: message.content.slice(lastPos),
-            })
+        // Check for incomplete code block at the end during streaming
+        if (message.status === 'streaming') {
+            const remainingContent = message.content.slice(lastPos)
+            const incompleteBlockMatch = /```([a-zA-Z]*)\n([\s\S]*)$/.exec(
+                remainingContent,
+            )
+
+            if (incompleteBlockMatch) {
+                const incompleteBlockStart = remainingContent.lastIndexOf('```')
+                if (incompleteBlockStart > 0) {
+                    // Add text before the incomplete block
+                    segments.push({
+                        type: 'text',
+                        content: remainingContent.slice(
+                            0,
+                            incompleteBlockStart,
+                        ),
+                    })
+                }
+                // Add the incomplete block
+                segments.push({
+                    type: 'incomplete-code',
+                    content: '', // Don't include the content while streaming
+                    language: incompleteBlockMatch[1] || null,
+                })
+            } else {
+                // No incomplete block, just add remaining text
+                if (remainingContent) {
+                    segments.push({
+                        type: 'text',
+                        content: remainingContent,
+                    })
+                }
+            }
+        } else {
+            // Not streaming, just add any remaining content as text
+            if (lastPos < message.content.length) {
+                segments.push({
+                    type: 'text',
+                    content: message.content.slice(lastPos),
+                })
+            }
         }
 
         // Process each segment
         segments.forEach(segment => {
-            if (segment.type === 'code') {
+            if (segment.type === 'code' || segment.type === 'incomplete-code') {
                 // Create code block container
                 const codeBlockContainer = crelt('div')
                 Object.assign(
                     codeBlockContainer.style,
                     styles.codeBlockContainerStyles,
                 )
-
-                // Create code block editor
-                new EditorView({
-                    state: EditorState.create({
-                        doc: segment.content,
-                        extensions: [
-                            EditorView.editable.of(false),
-                            EditorState.readOnly.of(true),
-                            EditorView.lineWrapping,
-                            oneDark,
-                            segment.language
-                                ? (getLanguageSupport(segment.language) ?? [])
-                                : [],
-                            styles.codeBlockEditorTheme,
-                        ],
-                    }),
-                    parent: codeBlockContainer,
-                })
 
                 // Add language header if present
                 if (segment.language) {
@@ -575,14 +593,45 @@ export function renderMessage(
                     langText.textContent = segment.language
                     header.appendChild(langText)
 
-                    codeBlockContainer.insertBefore(
-                        header,
-                        codeBlockContainer.firstChild,
+                    if (segment.type === 'incomplete-code') {
+                        const spinner = crelt('div')
+                        Object.assign(spinner.style, styles.headerSpinnerStyles)
+                        header.appendChild(spinner)
+                    }
+
+                    codeBlockContainer.appendChild(header)
+                }
+
+                if (segment.type === 'incomplete-code') {
+                    // Create loading container for incomplete code block
+                    const loadingContainer = crelt('div')
+                    Object.assign(
+                        loadingContainer.style,
+                        styles.incompleteCodeLoadingContainerStyles,
                     )
+                } else {
+                    // Create code block editor for complete blocks
+                    new EditorView({
+                        state: EditorState.create({
+                            doc: segment.content,
+                            extensions: [
+                                EditorView.editable.of(false),
+                                EditorState.readOnly.of(true),
+                                EditorView.lineWrapping,
+                                oneDark,
+                                segment.language
+                                    ? (getLanguageSupport(segment.language) ??
+                                      [])
+                                    : [],
+                                styles.codeBlockEditorTheme,
+                            ],
+                        }),
+                        parent: codeBlockContainer,
+                    })
                 }
 
                 contentEl.appendChild(codeBlockContainer)
-            } else {
+            } else if (segment.type === 'text') {
                 // Process text segment for inline code
                 const textContainer = crelt('div')
                 Object.assign(textContainer.style, styles.textContainerStyles)

@@ -84,10 +84,10 @@ export const headerBorderStyles = {
 export const messagesContainerStyles = {
     flex: '1',
     overflowY: 'auto',
-    padding: '12px 0',
+    padding: '8px 0',
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
+    gap: '8px',
 }
 
 export const inputContainerStyles = {
@@ -143,6 +143,9 @@ export const getMessageStyles = (isUser: boolean) => ({
     color: isUser
         ? 'var(--cm-message-text, white)'
         : 'var(--cm-text-color, #cdc8d0)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
 })
 
 export const messageContentStyles = {
@@ -150,10 +153,11 @@ export const messageContentStyles = {
     lineHeight: '1.2',
     display: 'flex',
     flexDirection: 'column',
+    gap: '8px',
 }
 
 export const codeBlockContainerStyles = {
-    margin: '0',
+    margin: '8px 0 0 0',
     position: 'relative',
     border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
     borderRadius: '8px',
@@ -209,10 +213,33 @@ export const dotStyles = {
     opacity: '0.5',
 }
 
+export const headerSpinnerStyles = {
+    marginLeft: 'auto',
+    width: '8px',
+    height: '8px',
+    border: '1.5px solid transparent',
+    borderTopColor: 'currentColor',
+    borderRightColor: 'currentColor',
+    borderRadius: '50%',
+    animation: 'cm-spin 0.8s linear infinite',
+}
+
+export const incompleteCodeLoadingContainerStyles = {
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    color: 'var(--cm-text-secondary, rgba(255, 255, 255, 0.6))',
+    fontFamily: 'var(--cm-font-family-mono, monospace)',
+    fontSize: '13px',
+    minHeight: '50px',
+}
+
 export const textContainerStyles = {
     margin: '0',
     padding: '0',
     lineHeight: 'inherit',
+    minHeight: '20px',
 }
 
 // Settings panel styles
