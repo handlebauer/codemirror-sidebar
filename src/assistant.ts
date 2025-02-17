@@ -13,10 +13,42 @@ interface Message {
     status?: 'sending' | 'streaming' | 'complete'
 }
 
+type ModelProvider = 'google' | 'openai' | 'mistral'
+type ModelId = 'gemini-pro' | 'gpt-4' | 'mistral-large'
+
+interface Model {
+    id: ModelId
+    provider: ModelProvider
+    name: string
+    description: string
+}
+
+const AVAILABLE_MODELS: Model[] = [
+    {
+        id: 'gemini-pro',
+        provider: 'google',
+        name: 'Gemini Pro',
+        description: "Google's most capable model for text generation",
+    },
+    {
+        id: 'gpt-4',
+        provider: 'openai',
+        name: 'GPT-4',
+        description: "OpenAI's most capable model",
+    },
+    {
+        id: 'mistral-large',
+        provider: 'mistral',
+        name: 'Mistral Large',
+        description: "Mistral's largest open model",
+    },
+]
+
 interface AssistantState {
     activeTab: 'assistant' | 'agent'
     messages: Message[]
     isLoading: boolean
+    selectedModel: ModelId
 }
 
 // State management
@@ -26,6 +58,7 @@ const assistantState = StateField.define<AssistantState>({
             activeTab: 'assistant',
             messages: [],
             isLoading: false,
+            selectedModel: 'gemini-pro', // Default to Gemini
         }
     },
     update(value, tr) {
@@ -52,6 +85,8 @@ const assistantState = StateField.define<AssistantState>({
                         effect.value.status === 'sending' ||
                         effect.value.status === 'streaming',
                 }
+            } else if (effect.is(selectModelEffect)) {
+                return { ...value, selectedModel: effect.value }
             }
         }
         return value
@@ -65,6 +100,7 @@ const updateMessageStatusEffect = StateEffect.define<{
     message: Message
     status: Message['status']
 }>()
+const selectModelEffect = StateEffect.define<ModelId>()
 
 // UI Rendering
 function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
@@ -86,6 +122,13 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         padding: '8px 8px 0',
         borderBottom:
             '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    })
+
+    const tabsGroup = crelt('div')
+    Object.assign(tabsGroup.style, {
+        display: 'flex',
     })
 
     const createTab = (label: string, id: 'assistant' | 'agent') => {
@@ -116,8 +159,64 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         return tab
     }
 
-    tabsContainer.appendChild(createTab('Assistant', 'assistant'))
-    tabsContainer.appendChild(createTab('Agent', 'agent'))
+    tabsGroup.appendChild(createTab('Assistant', 'assistant'))
+    tabsGroup.appendChild(createTab('Agent', 'agent'))
+
+    const modelSelect = crelt('select') as HTMLSelectElement
+    Object.assign(modelSelect.style, {
+        background: 'none',
+        border: 'none',
+        color: 'var(--cm-text-color, #cdc8d0)',
+        padding: '6px 8px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        opacity: '0.7',
+        transition: 'opacity 0.2s',
+        marginRight: '4px',
+        marginTop: '1px',
+        height: '29px',
+        alignSelf: 'flex-start',
+        width: '120px',
+        textAlign: 'right',
+        appearance: 'none',
+        backgroundImage:
+            'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20fill%3D%22%23cdc8d0%22%20d%3D%22M7%2010L3.5%206h7L7%2010z%22%2F%3E%3C%2Fsvg%3E")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 4px center',
+        paddingRight: '24px',
+    })
+
+    AVAILABLE_MODELS.forEach(model => {
+        const option = crelt(
+            'option',
+            { value: model.id },
+            model.name,
+        ) as HTMLOptionElement
+        if (model.id === state.selectedModel) {
+            option.selected = true
+        }
+        Object.assign(option.style, {
+            textAlign: 'right',
+        })
+        modelSelect.appendChild(option)
+    })
+
+    modelSelect.addEventListener('change', () => {
+        view.dispatch({
+            effects: selectModelEffect.of(modelSelect.value as ModelId),
+        })
+    })
+
+    modelSelect.addEventListener('mouseover', () => {
+        modelSelect.style.opacity = '1'
+    })
+
+    modelSelect.addEventListener('mouseout', () => {
+        modelSelect.style.opacity = '0.7'
+    })
+
+    tabsContainer.appendChild(tabsGroup)
+    tabsContainer.appendChild(modelSelect)
     dom.appendChild(tabsContainer)
 
     // Create messages container
@@ -303,4 +402,11 @@ export const assistant = [
     sidebarPanel.of(assistantPanelSpec),
 ]
 
-export { switchTabEffect, addMessageEffect, updateMessageStatusEffect }
+export {
+    switchTabEffect,
+    addMessageEffect,
+    updateMessageStatusEffect,
+    selectModelEffect,
+}
+
+export type { Message, ModelProvider, ModelId, Model }
