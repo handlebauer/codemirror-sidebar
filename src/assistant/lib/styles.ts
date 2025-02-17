@@ -69,10 +69,13 @@ export const settingsButtonStyles = {
     background: 'none',
     border: 'none',
     padding: '6px 8px',
-    fontSize: '16px',
+    fontSize: '13px',
     cursor: 'pointer',
     opacity: '0.7',
     transition: 'opacity 0.2s',
+    color: 'var(--cm-text-color, #cdc8d0)',
+    display: 'flex',
+    alignItems: 'center',
 }
 
 export const headerBorderStyles = {
