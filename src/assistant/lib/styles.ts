@@ -90,7 +90,6 @@ export const messagesContainerStyles = {
     padding: '8px 0',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
 }
 
 export const inputContainerStyles = {
@@ -156,11 +155,11 @@ export const messageContentStyles = {
     lineHeight: '1.2',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
+    gap: '8',
 }
 
 export const codeBlockContainerStyles = {
-    margin: '8px 0 0 0',
+    margin: '0',
     position: 'relative',
     border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
     borderRadius: '8px',

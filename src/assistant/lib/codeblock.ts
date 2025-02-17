@@ -45,7 +45,7 @@ class CodeBlockWidget extends WidgetType {
         wrapper: {
             border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
             borderRadius: '8px',
-            margin: '8px 0',
+            margin: '0',
             overflow: 'hidden',
             backgroundColor: '#1e1e1e',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
