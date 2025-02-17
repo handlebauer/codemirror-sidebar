@@ -168,7 +168,7 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
-        padding: '16px',
+        padding: '12px 12px 0',
     })
 
     // Header container with back button
@@ -177,15 +177,21 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '16px',
+        height: '32px',
     })
 
-    // Header
+    // Header styled like a tab
     const header = crelt('div', {}, 'API Key Settings')
     Object.assign(header.style, {
-        fontSize: '16px',
-        fontWeight: '600',
+        fontSize: '13px',
+        fontWeight: '500',
         color: 'var(--cm-text-color, #cdc8d0)',
+        padding: '6px 10px',
+        background: 'var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
+        borderRadius: '4px 4px 0 0',
+        marginBottom: '-1px',
+        borderBottom:
+            '1px solid var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
     })
 
     // Back button in header
@@ -219,15 +225,25 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
     headerContainer.appendChild(backButton)
     dom.appendChild(headerContainer)
 
-    // Description
+    // Add border right after header
+    const headerBorder = crelt('div')
+    Object.assign(headerBorder.style, {
+        height: '1px',
+        background: 'var(--cm-border-color, rgba(255, 255, 255, 0.1))',
+        margin: '-2px 0 12px',
+    })
+    dom.appendChild(headerBorder)
+
+    // Description with adjusted margins
     const description = crelt(
         'div',
         {},
         'Configure API keys for each model provider. Keys are stored locally and never transmitted.',
     )
     Object.assign(description.style, {
-        fontSize: '13px',
-        marginBottom: '24px',
+        fontSize: '12px',
+        marginTop: '12px',
+        marginBottom: '16px',
         color: 'var(--cm-text-color, #cdc8d0)',
         opacity: '0.7',
     })
@@ -415,22 +431,23 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
+        padding: '12px 12px 0',
     })
 
     // Create tabs
     const tabsContainer = crelt('div')
     Object.assign(tabsContainer.style, {
         display: 'flex',
-        padding: '8px 8px 0',
-        borderBottom:
-            '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'center',
+        height: '32px',
     })
 
     const tabsGroup = crelt('div')
     Object.assign(tabsGroup.style, {
         display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
     })
 
     const createTab = (label: string, id: 'assistant' | 'agent') => {
@@ -438,7 +455,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         Object.assign(tab.style, {
             background: 'none',
             border: 'none',
-            padding: '6px 12px',
+            padding: '6px 10px',
             fontSize: '13px',
             fontWeight: '500',
             cursor: 'pointer',
@@ -446,14 +463,14 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
             color: 'var(--cm-text-color, #cdc8d0)',
             opacity: state.activeTab === id ? '1' : '0.7',
             transition: 'opacity 0.2s',
+            marginBottom: '-1px',
         })
 
         if (state.activeTab === id) {
             Object.assign(tab.style, {
                 background: 'var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
-                borderColor: 'var(--cm-border-color, rgba(255, 255, 255, 0.1))',
-                borderStyle: 'solid',
-                borderWidth: '1px 1px 0 1px',
+                borderBottom:
+                    '1px solid var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
             })
         }
 
@@ -474,6 +491,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         cursor: 'pointer',
         opacity: '0.7',
         transition: 'opacity 0.2s',
+        marginLeft: '8px',
     })
 
     settingsButton.addEventListener('mouseover', () => {
@@ -494,15 +512,24 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     tabsContainer.appendChild(settingsButton)
     dom.appendChild(tabsContainer)
 
-    // Create messages container
+    // Add border right after tabs
+    const headerBorder = crelt('div')
+    Object.assign(headerBorder.style, {
+        height: '1px',
+        background: 'var(--cm-border-color, rgba(255, 255, 255, 0.1))',
+        margin: '-2px 0 12px',
+    })
+    dom.appendChild(headerBorder)
+
+    // Create messages container with adjusted padding
     const messagesContainer = crelt('div')
     Object.assign(messagesContainer.style, {
         flex: '1',
         overflowY: 'auto',
-        padding: '16px',
+        padding: '12px 0',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: '12px',
     })
 
     state.messages.forEach(message => {
