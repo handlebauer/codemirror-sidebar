@@ -122,6 +122,10 @@ const createSidebarPlugin = (id: string) =>
             dom: HTMLElement
             panelContainer: HTMLElement
             activePanel: HTMLElement | null = null
+            resizeHandle: HTMLElement
+            initialWidth: number = 0
+            initialX: number = 0
+            isDragging: boolean = false
 
             constructor(view: EditorView) {
                 debug('Initializing sidebar plugin:', id)
@@ -129,6 +133,8 @@ const createSidebarPlugin = (id: string) =>
                 this.panelContainer = crelt('div', {
                     class: 'cm-sidebar-panel-container',
                 })
+                this.resizeHandle = this.createResizeHandle()
+                this.dom.appendChild(this.resizeHandle)
                 this.dom.appendChild(this.panelContainer)
 
                 // Apply styles before adding to DOM to prevent flash of visible content
@@ -179,6 +185,79 @@ const createSidebarPlugin = (id: string) =>
                 this.dom.style.display = visible ? 'block' : 'none'
             }
 
+            private createResizeHandle(): HTMLElement {
+                const handle = crelt('div', {
+                    class: 'cm-sidebar-resize-handle',
+                })
+
+                // Set up resize handle styles
+                Object.assign(handle.style, {
+                    position: 'absolute',
+                    top: '0',
+                    width: '4px',
+                    height: '100%',
+                    cursor: 'col-resize',
+                    zIndex: '20',
+                })
+
+                const startDragging = (e: MouseEvent) => {
+                    e.preventDefault()
+                    this.isDragging = true
+                    this.initialX = e.clientX
+                    this.initialWidth = this.dom.offsetWidth
+
+                    // Add event listeners for dragging
+                    document.addEventListener('mousemove', onDrag)
+                    document.addEventListener('mouseup', stopDragging)
+                    document.body.style.cursor = 'col-resize'
+                    document.body.style.userSelect = 'none'
+                }
+
+                const onDrag = (e: MouseEvent) => {
+                    if (!this.isDragging) return
+
+                    const stateField = sidebarStates.get(id)!
+                    // Find the EditorView instance
+                    const editorElement = this.dom.closest(
+                        '.cm-editor',
+                    ) as HTMLElement
+                    if (!editorElement) return
+                    const view = EditorView.findFromDOM(editorElement)
+                    if (!view) return
+
+                    const state = view.state.field(stateField)
+                    const delta = e.clientX - this.initialX
+                    let newWidth =
+                        state.options.dock === 'left'
+                            ? this.initialWidth + delta
+                            : this.initialWidth - delta
+
+                    // Enforce minimum and maximum width
+                    newWidth = Math.max(150, Math.min(800, newWidth))
+
+                    this.dom.style.width = `${newWidth}px`
+
+                    // Update the state with the new width
+                    view.dispatch({
+                        effects: updateSidebarOptionsEffect.of({
+                            ...state.options,
+                            width: `${newWidth}px`,
+                        }),
+                    })
+                }
+
+                const stopDragging = () => {
+                    this.isDragging = false
+                    document.removeEventListener('mousemove', onDrag)
+                    document.removeEventListener('mouseup', stopDragging)
+                    document.body.style.cursor = ''
+                    document.body.style.userSelect = ''
+                }
+
+                handle.addEventListener('mousedown', startDragging)
+                return handle
+            }
+
             private applySidebarStyles(
                 options: SidebarOptions,
                 visible: boolean,
@@ -188,14 +267,12 @@ const createSidebarPlugin = (id: string) =>
 
                 if (editor) {
                     if (!overlay) {
-                        // Always use flex layout in non-overlay mode, regardless of visibility
                         Object.assign(editor.style, {
                             display: 'flex',
                             flexDirection: 'row',
                             position: 'relative',
                         })
                     } else {
-                        // For overlay mode, keep the editor as block
                         Object.assign(editor.style, {
                             display: 'block',
                             position: 'relative',
@@ -210,10 +287,15 @@ const createSidebarPlugin = (id: string) =>
                     flexShrink: '0',
                     display: 'flex',
                     flexDirection: 'column',
+                    transition: 'none', // Remove transition for smoother resizing
+                })
+
+                // Position the resize handle based on dock position
+                Object.assign(this.resizeHandle.style, {
+                    [dock === 'left' ? 'right' : 'left']: '-2px',
                 })
 
                 if (!overlay) {
-                    // Non-overlay mode styles
                     Object.assign(this.dom.style, {
                         position: 'relative',
                         order: dock === 'left' ? -1 : 1,
@@ -223,7 +305,6 @@ const createSidebarPlugin = (id: string) =>
                         opacity: visible ? '1' : '0',
                     })
                 } else {
-                    // Overlay mode styles
                     Object.assign(this.dom.style, {
                         position: 'absolute',
                         [dock === 'left' ? 'left' : 'right']: visible
@@ -235,7 +316,6 @@ const createSidebarPlugin = (id: string) =>
                     })
                 }
 
-                // Handle editor content spacing in non-overlay mode
                 if (!overlay && editor) {
                     const editorContent = editor.querySelector(
                         '.cm-scroller',
