@@ -331,3 +331,41 @@ export const inlineCodeStyles = `
     white-space: pre;
     color: var(--cm-code-color, #e5e7eb);
 `
+
+export const codeBlockWrapperStyles = {
+    border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
+    borderRadius: '8px',
+    margin: '0',
+    overflow: 'hidden',
+    backgroundColor: '#1e1e1e',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+}
+
+export const codeBlockContentStyles = {
+    padding: '16px',
+}
+
+export const loadingDotsStyles = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    marginLeft: '8px',
+    opacity: '0.5',
+}
+
+export const loadingDotBaseStyles = {
+    width: '3px',
+    height: '3px',
+    borderRadius: '50%',
+    transition: 'background-color 0.15s ease',
+}
+
+export const loadingDotFilledStyles = {
+    ...loadingDotBaseStyles,
+    backgroundColor: 'currentColor',
+}
+
+export const loadingDotEmptyStyles = {
+    ...loadingDotBaseStyles,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+}

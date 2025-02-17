@@ -67,6 +67,10 @@ const createAIService = (): AIService => {
                         "## Let's start with a simple inline code example: ",
                         "`console.log('hello world')`\n\n",
                         "Here's a multiline code block:\n\n```javascript\nfunction greet(name) {\n",
+                        '    console.log(`Hello, ${name}!`)\n    return {\n}\n',
+                        '    console.log(`Hello, ${name}!`)\n    return {\n}\n',
+                        '    console.log(`Hello, ${name}!`)\n    return {\n}\n',
+                        '    console.log(`Hello, ${name}!`)\n    return {\n}\n',
                         '    console.log(`Hello, ${name}!`)\n    return {\n',
                         "        message: 'Greeting sent',\n        timestamp: new Date()\n    }\n}\n\n",
                         "// Example usage\nconst result = greet('Developer')\n```\n\n",
@@ -81,7 +85,7 @@ const createAIService = (): AIService => {
                         textStream: (async function* () {
                             for (const chunk of simulatedResponse) {
                                 await new Promise(resolve =>
-                                    setTimeout(resolve, 1000),
+                                    setTimeout(resolve, 400),
                                 )
                                 yield chunk
                             }

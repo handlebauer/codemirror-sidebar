@@ -6,6 +6,9 @@ import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { LanguageSupport } from '@codemirror/language'
 import { markdown } from '@codemirror/lang-markdown'
+import { oneDark } from '@codemirror/theme-one-dark'
+import crelt from 'crelt'
+import * as styles from './styles'
 
 // Interface for storing code block information
 interface CodeBlockInfo {
@@ -40,37 +43,6 @@ const getLanguageSupport = (lang: string): LanguageSupport | null => {
 class CodeBlockWidget extends WidgetType {
     private view: EditorView | null = null
 
-    // Inline styles for code blocks
-    private static readonly styles = {
-        wrapper: {
-            border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
-            borderRadius: '8px',
-            margin: '0',
-            overflow: 'hidden',
-            backgroundColor: '#1e1e1e',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-        },
-        header: {
-            padding: '8px 12px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            background:
-                'linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05))',
-            color: 'var(--cm-text-secondary, rgba(255, 255, 255, 0.6))',
-            fontSize: '11px',
-            fontFamily:
-                'var(--cm-font-family-mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace)',
-            textTransform: 'lowercase',
-            letterSpacing: '0.5px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            userSelect: 'none',
-        },
-        content: {
-            padding: '16px',
-        },
-    }
-
     constructor(
         readonly code: string,
         readonly language: string | null,
@@ -88,20 +60,19 @@ class CodeBlockWidget extends WidgetType {
 
     toDOM(): HTMLElement {
         const wrapper = document.createElement('div')
-        Object.assign(wrapper.style, CodeBlockWidget.styles.wrapper)
+        Object.assign(wrapper.style, styles.codeBlockWrapperStyles)
         wrapper.className = 'cm-ai-codeblock'
 
         // Create header with language badge if language is specified
         if (this.language) {
             const header = document.createElement('div')
-            Object.assign(header.style, CodeBlockWidget.styles.header)
+            Object.assign(header.style, styles.codeBlockHeaderStyles)
             header.className = 'cm-ai-codeblock-header'
 
             // Add a dot icon before the language name
             const dot = document.createElement('span')
             dot.textContent = '●'
-            dot.style.fontSize = '8px'
-            dot.style.opacity = '0.5'
+            Object.assign(dot.style, styles.dotStyles)
             header.appendChild(dot)
 
             const langText = document.createElement('span')
@@ -113,7 +84,7 @@ class CodeBlockWidget extends WidgetType {
 
         // Create the nested editor
         const editorContainer = document.createElement('div')
-        Object.assign(editorContainer.style, CodeBlockWidget.styles.content)
+        Object.assign(editorContainer.style, styles.codeBlockContentStyles)
         editorContainer.className = 'cm-ai-codeblock-content'
 
         const languageSupport = this.language
@@ -123,6 +94,7 @@ class CodeBlockWidget extends WidgetType {
             EditorView.editable.of(false),
             EditorView.lineWrapping,
             EditorState.readOnly.of(true),
+            oneDark,
             EditorView.theme({
                 '&': {
                     backgroundColor: 'transparent !important',
@@ -221,3 +193,88 @@ export const aiCodeBlockExtension = [codeBlockState]
 // Export helper functions and types
 export { addCodeBlock, removeCodeBlocks, parseCodeBlocks }
 export type { CodeBlockInfo }
+
+// Keep track of chunk count to determine which dots to fill
+let chunkCounter = 0
+
+export function renderCodeBlock(
+    segment: {
+        type: 'code' | 'incomplete-code'
+        content: string
+        language?: string | null
+    },
+    container: HTMLElement,
+) {
+    const codeBlockContainer = crelt('div')
+    Object.assign(codeBlockContainer.style, styles.codeBlockContainerStyles)
+
+    // Add language header if present
+    if (segment.language) {
+        const header = crelt('div')
+        Object.assign(header.style, styles.codeBlockHeaderStyles)
+
+        const dot = crelt('span')
+        dot.textContent = '●'
+        Object.assign(dot.style, styles.dotStyles)
+        header.appendChild(dot)
+
+        const langText = crelt('span')
+        langText.textContent = segment.language
+        header.appendChild(langText)
+
+        if (segment.type === 'incomplete-code') {
+            // Increment chunk counter and wrap around at 3
+            chunkCounter = (chunkCounter + 1) % 3
+
+            const loadingDots = crelt('div')
+            Object.assign(loadingDots.style, styles.loadingDotsStyles)
+
+            // Create three dots that fill in sequence based on chunk count
+            for (let i = 0; i < 3; i++) {
+                const dot = crelt('div')
+                // Fill dots up to the current chunk count
+                Object.assign(
+                    dot.style,
+                    i <= chunkCounter
+                        ? styles.loadingDotFilledStyles
+                        : styles.loadingDotEmptyStyles,
+                )
+                loadingDots.appendChild(dot)
+            }
+
+            header.appendChild(loadingDots)
+        }
+
+        codeBlockContainer.appendChild(header)
+    }
+
+    if (segment.type === 'incomplete-code') {
+        // Create loading container for incomplete code block
+        const loadingContainer = crelt('div')
+        Object.assign(
+            loadingContainer.style,
+            styles.incompleteCodeLoadingContainerStyles,
+        )
+        codeBlockContainer.appendChild(loadingContainer)
+    } else {
+        // Create code block editor for complete blocks
+        new EditorView({
+            state: EditorState.create({
+                doc: segment.content,
+                extensions: [
+                    EditorView.editable.of(false),
+                    EditorState.readOnly.of(true),
+                    EditorView.lineWrapping,
+                    oneDark,
+                    segment.language
+                        ? (getLanguageSupport(segment.language) ?? [])
+                        : [],
+                    styles.codeBlockEditorTheme,
+                ],
+            }),
+            parent: codeBlockContainer,
+        })
+    }
+
+    container.appendChild(codeBlockContainer)
+}

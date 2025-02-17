@@ -1,8 +1,6 @@
 import { EditorView } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
-import { oneDark } from '@codemirror/theme-one-dark'
 import crelt from 'crelt'
-import { parseCodeBlocks } from './codeblock'
+import { parseCodeBlocks, renderCodeBlock } from './codeblock'
 import {
     assistantState,
     toggleSettingsEffect,
@@ -16,11 +14,7 @@ import { aiService } from '../../ai/ai'
 import type { Message } from '../types'
 import type { ModelId } from '../../ai/types'
 import { AVAILABLE_MODELS } from '../constants'
-import {
-    formatProviderName,
-    getLanguageSupport,
-    mapModelToAIService,
-} from './utils'
+import { formatProviderName, mapModelToAIService } from './utils'
 import * as styles from './styles'
 
 // Debug helper
@@ -572,65 +566,14 @@ export function renderMessage(
         // Process each segment
         segments.forEach(segment => {
             if (segment.type === 'code' || segment.type === 'incomplete-code') {
-                // Create code block container
-                const codeBlockContainer = crelt('div')
-                Object.assign(
-                    codeBlockContainer.style,
-                    styles.codeBlockContainerStyles,
+                renderCodeBlock(
+                    {
+                        type: segment.type,
+                        content: segment.content,
+                        language: segment.language,
+                    },
+                    contentEl,
                 )
-
-                // Add language header if present
-                if (segment.language) {
-                    const header = crelt('div')
-                    Object.assign(header.style, styles.codeBlockHeaderStyles)
-
-                    const dot = crelt('span')
-                    dot.textContent = '●'
-                    Object.assign(dot.style, styles.dotStyles)
-                    header.appendChild(dot)
-
-                    const langText = crelt('span')
-                    langText.textContent = segment.language
-                    header.appendChild(langText)
-
-                    if (segment.type === 'incomplete-code') {
-                        const spinner = crelt('div')
-                        Object.assign(spinner.style, styles.headerSpinnerStyles)
-                        header.appendChild(spinner)
-                    }
-
-                    codeBlockContainer.appendChild(header)
-                }
-
-                if (segment.type === 'incomplete-code') {
-                    // Create loading container for incomplete code block
-                    const loadingContainer = crelt('div')
-                    Object.assign(
-                        loadingContainer.style,
-                        styles.incompleteCodeLoadingContainerStyles,
-                    )
-                } else {
-                    // Create code block editor for complete blocks
-                    new EditorView({
-                        state: EditorState.create({
-                            doc: segment.content,
-                            extensions: [
-                                EditorView.editable.of(false),
-                                EditorState.readOnly.of(true),
-                                EditorView.lineWrapping,
-                                oneDark,
-                                segment.language
-                                    ? (getLanguageSupport(segment.language) ??
-                                      [])
-                                    : [],
-                                styles.codeBlockEditorTheme,
-                            ],
-                        }),
-                        parent: codeBlockContainer,
-                    })
-                }
-
-                contentEl.appendChild(codeBlockContainer)
             } else if (segment.type === 'text') {
                 // Process text segment for inline code
                 const textContainer = crelt('div')
