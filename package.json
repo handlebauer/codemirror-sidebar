@@ -33,6 +33,9 @@
         "@types/node": "^20.11.19"
     },
     "dependencies": {
+        "@ai-sdk/google": "^1.1.14",
+        "@ai-sdk/mistral": "^1.1.11",
+        "@ai-sdk/openai": "^1.1.12",
         "@codemirror/lang-javascript": "^6.2.3",
         "@codemirror/lang-json": "^6.0.1",
         "@codemirror/lang-markdown": "^6.3.2",
@@ -41,6 +44,7 @@
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.36.2",
         "@logtape/logtape": "^0.4.3",
+        "ai": "^4.1.41",
         "codemirror": "^6.0.1",
         "crelt": "^1.0.6",
         "dedent": "^1.5.3"
