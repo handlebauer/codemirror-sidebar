@@ -90,6 +90,7 @@ export const messagesContainerStyles = {
     padding: '8px 0',
     display: 'flex',
     flexDirection: 'column',
+    gap: '8px',
 }
 
 export const inputContainerStyles = {
@@ -155,7 +156,7 @@ export const messageContentStyles = {
     lineHeight: '1.2',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8',
+    gap: '0',
 }
 
 export const codeBlockContainerStyles = {
@@ -263,6 +264,16 @@ export const settingsHeaderStyles = {
     borderRadius: '4px 4px 0 0',
     marginBottom: '-1px',
     borderBottom: '1px solid var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
+    flex: '1',
+}
+
+export const providerHeaderStyles = {
+    fontSize: '13px',
+    fontWeight: '500',
+    color: 'var(--cm-text-color, #cdc8d0)',
+    padding: '6px 10px',
+    background: 'none',
+    borderRadius: '4px',
 }
 
 export const settingsDescriptionStyles = {

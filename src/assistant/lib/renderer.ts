@@ -362,7 +362,7 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         Object.assign(headerContainer.style, styles.tabsContainerStyles)
 
         const label = crelt('label', {}, formatProviderName(model.provider))
-        Object.assign(label.style, styles.settingsHeaderStyles)
+        Object.assign(label.style, styles.providerHeaderStyles)
 
         const resetButton = crelt('button', {}, 'Reset key')
         Object.assign(resetButton.style, {
