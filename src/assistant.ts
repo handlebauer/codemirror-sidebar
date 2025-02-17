@@ -1,9 +1,15 @@
-import { StateField, StateEffect } from '@codemirror/state'
+import { StateField, StateEffect, EditorState } from '@codemirror/state'
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { type SidebarPanelSpec, sidebarPanel } from './sidebar'
 import crelt from 'crelt'
 import { aiService, DEFAULT_MODEL } from './ai/ai'
 import { type AISidebarTab } from './ai/types'
+import { parseCodeBlocks } from './codeblock'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+import { markdown } from '@codemirror/lang-markdown'
+import { LanguageSupport } from '@codemirror/language'
+import { oneDark } from '@codemirror/theme-one-dark'
 
 // Debug helper
 const debug = (...args: unknown[]) => console.log('[Assistant]', ...args)
@@ -650,7 +656,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
             const messageEl = crelt('div')
             Object.assign(messageEl.style, {
                 maxWidth: '85%',
-                padding: '8px 12px',
+                padding: '8px 10px',
                 borderRadius: '12px',
                 fontSize: '13px',
                 lineHeight: '1.4',
@@ -665,29 +671,172 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                         : 'var(--cm-text-color, #cdc8d0)',
             })
 
-            const contentEl = crelt('div', {}, message.content)
+            const contentEl = crelt('div')
             Object.assign(contentEl.style, {
                 whiteSpace: 'pre-wrap',
-                lineHeight: '20px', // Set a fixed line height
+                lineHeight: '1.2',
+                display: 'flex',
+                flexDirection: 'column',
             })
 
-            // Process only inline single backtick code blocks, ignore triple backtick blocks
-            const inlineCodeRegex = /(?<!`)`([^`]+)`(?!`)/g
-            contentEl.innerHTML = message.content.replace(
-                inlineCodeRegex,
-                (_, code) => {
-                    return `<code style="
-                    background: var(--cm-code-bg, rgba(96, 125, 139, 0.3));
-                    padding: 1px 4px;
-                    border-radius: 3px;
-                    font-family: monospace;
-                    font-size: 12px;
-                    display: inline;
-                    white-space: pre;
-                    color: var(--cm-code-color, #e5e7eb);
-                ">${code}</code>`
-                },
-            )
+            // First, find all code blocks and their positions
+            const codeBlocks = parseCodeBlocks(message.content)
+            let lastPos = 0
+            const segments: Array<{
+                type: 'text' | 'code'
+                content: string
+                language?: string | null
+            }> = []
+
+            // Split content into text and code segments
+            codeBlocks.forEach(block => {
+                if (block.from > lastPos) {
+                    // Add text segment before code block
+                    segments.push({
+                        type: 'text',
+                        content: message.content.slice(lastPos, block.from),
+                    })
+                }
+                // Add code block
+                segments.push({
+                    type: 'code',
+                    content: block.code,
+                    language: block.language,
+                })
+                lastPos = block.to
+            })
+
+            // Add remaining text after last code block
+            if (lastPos < message.content.length) {
+                segments.push({
+                    type: 'text',
+                    content: message.content.slice(lastPos),
+                })
+            }
+
+            // Process each segment
+            segments.forEach(segment => {
+                if (segment.type === 'code') {
+                    // Create code block container
+                    const codeBlockContainer = crelt('div')
+                    Object.assign(codeBlockContainer.style, {
+                        margin: '0',
+                        position: 'relative',
+                        border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        backgroundColor: '#1e1e1e',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    })
+
+                    // Create code block editor
+                    new EditorView({
+                        state: EditorState.create({
+                            doc: segment.content,
+                            extensions: [
+                                EditorView.editable.of(false),
+                                EditorState.readOnly.of(true),
+                                EditorView.lineWrapping,
+                                oneDark,
+                                segment.language
+                                    ? (getLanguageSupport(segment.language) ??
+                                      [])
+                                    : [],
+                                EditorView.theme({
+                                    '&': {
+                                        backgroundColor:
+                                            'transparent !important',
+                                        height: 'auto !important',
+                                        flex: 'initial !important',
+                                        position: 'static !important',
+                                    },
+                                    '.cm-content': {
+                                        padding: '16px !important',
+                                        height: 'auto !important',
+                                        fontFamily:
+                                            'var(--cm-font-family-mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace) !important',
+                                        fontSize: '13px !important',
+                                        lineHeight: '1.5 !important',
+                                    },
+                                    '.cm-line': {
+                                        padding: '0 !important',
+                                    },
+                                    '.cm-scroller': {
+                                        height: 'auto !important',
+                                        flex: 'initial !important',
+                                        width: '100% !important',
+                                    },
+                                }),
+                            ],
+                        }),
+                        parent: codeBlockContainer,
+                    })
+
+                    // Add language header if present
+                    if (segment.language) {
+                        const header = crelt('div')
+                        Object.assign(header.style, {
+                            padding: '8px 12px',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                            background:
+                                'linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05))',
+                            color: 'var(--cm-text-secondary, rgba(255, 255, 255, 0.6))',
+                            fontSize: '11px',
+                            fontFamily:
+                                'var(--cm-font-family-mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace)',
+                            textTransform: 'lowercase',
+                            letterSpacing: '0.5px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            userSelect: 'none',
+                        })
+
+                        const dot = crelt('span')
+                        dot.textContent = '●'
+                        Object.assign(dot.style, {
+                            fontSize: '8px',
+                            opacity: '0.5',
+                        })
+                        header.appendChild(dot)
+
+                        const langText = crelt('span')
+                        langText.textContent = segment.language
+                        header.appendChild(langText)
+
+                        codeBlockContainer.insertBefore(
+                            header,
+                            codeBlockContainer.firstChild,
+                        )
+                    }
+
+                    contentEl.appendChild(codeBlockContainer)
+                } else {
+                    // Process text segment for inline code
+                    const textContainer = crelt('div')
+                    Object.assign(textContainer.style, {
+                        margin: '0',
+                        padding: '0',
+                        lineHeight: 'inherit',
+                    })
+                    const inlineCodeRegex = /(?<!`)`([^`]+)`(?!`)/g
+                    const processedText = segment.content.replace(
+                        inlineCodeRegex,
+                        (_, code) => `<code style="
+                            background: var(--cm-code-bg, rgba(96, 125, 139, 0.3));
+                            padding: 1px 4px;
+                            border-radius: 3px;
+                            font-family: monospace;
+                            font-size: 12px;
+                            display: inline;
+                            white-space: pre;
+                            color: var(--cm-code-color, #e5e7eb);
+                        ">${code}</code>`,
+                    )
+                    textContainer.innerHTML = processedText
+                    contentEl.appendChild(textContainer)
+                }
+            })
 
             messageEl.appendChild(contentEl)
             messagesContainer.appendChild(messageEl)
@@ -925,3 +1074,24 @@ export {
 }
 
 export type { Message, ModelProvider, ModelId, Model }
+
+// Function to determine language support based on string
+const getLanguageSupport = (lang: string): LanguageSupport | null => {
+    const normalizedLang = lang.toLowerCase().trim()
+    switch (normalizedLang) {
+        case 'javascript':
+        case 'js':
+            return javascript()
+        case 'typescript':
+        case 'ts':
+            return javascript({ typescript: true })
+        case 'python':
+        case 'py':
+            return python()
+        case 'markdown':
+        case 'md':
+            return markdown()
+        default:
+            return null
+    }
+}

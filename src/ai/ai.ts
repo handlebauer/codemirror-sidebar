@@ -46,17 +46,61 @@ const createAIService = (): AIService => {
         debug('Prompt:', fullPrompt)
 
         try {
+            const systemPrompt =
+                'You are a helpful assistant that can help with coding tasks.'
             switch (modelName) {
                 case 'openai:gpt-4o': {
-                    const openaiClient = createOpenAI({
-                        apiKey,
-                        compatibility: 'strict',
-                    })
-                    result = await streamText({
-                        model: openaiClient('gpt-4'),
-                        system: 'You are a helpful assistant that can help with coding tasks.',
-                        prompt: fullPrompt,
-                    })
+                    // DO NOT DELETE THIS COMMENTED OUT CODE
+                    // const openaiClient = createOpenAI({
+                    //     apiKey,
+                    //     compatibility: 'strict',
+                    // })
+                    // result = await streamText({
+                    //     model: openaiClient('gpt-4'),
+                    //     system: 'You are a helpful assistant that can help with coding tasks.',
+                    //     prompt: fullPrompt,
+                    // })
+                    // Simulate a simple response for testing
+                    const simulatedResponse = `# Here's a simulated response with code examples
+
+## Let's start with a simple inline code example: \`console.log('hello world')\`
+
+Here's a multiline code block:
+
+\`\`\`javascript
+function greet(name) {
+    console.log(\`Hello, \${name}!\`)
+    return {
+        message: 'Greeting sent',
+        timestamp: new Date()
+    }
+}
+
+// Example usage
+const result = greet('Developer')
+\`\`\`
+
+You can also use inline code for variables like \`result\` or \`name\`.
+
+Here's another code block with a different language:
+
+\`\`\`python
+def calculate_sum(numbers):
+    total = 0
+    for num in numbers:
+        total += num
+    return total
+
+# Test the function
+numbers = [1, 2, 3, 4, 5]
+print(f"Sum: {calculate_sum(numbers)}")
+\`\`\`
+`
+                    result = {
+                        textStream: (async function* () {
+                            yield simulatedResponse
+                        })(),
+                    }
                     break
                 }
                 case 'mistral:large': {
@@ -65,7 +109,7 @@ const createAIService = (): AIService => {
                     })
                     result = await streamText({
                         model: mistralClient('mistral-large-latest'),
-                        system: 'You are a helpful assistant that can help with coding tasks.',
+                        system: systemPrompt,
                         prompt: fullPrompt,
                     })
                     break
@@ -76,7 +120,7 @@ const createAIService = (): AIService => {
                     })
                     result = await streamText({
                         model: googleClient('gemini-2.0-flash-001'),
-                        system: 'You are a helpful assistant that can help with coding tasks.',
+                        system: systemPrompt,
                         prompt: fullPrompt,
                     })
                     break
@@ -91,6 +135,7 @@ const createAIService = (): AIService => {
                     })
                     result = await streamText({
                         model: openaiClient('gpt-4'),
+                        system: systemPrompt,
                         prompt: fullPrompt,
                     })
                 }
