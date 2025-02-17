@@ -10,6 +10,7 @@ const debug = (...args: unknown[]) => console.log('[Assistant]', ...args)
 
 // Types
 interface Message {
+    id: string
     role: 'user' | 'assistant'
     content: string
     status?: 'sending' | 'streaming' | 'complete'
@@ -89,16 +90,22 @@ const assistantState = StateField.define<AssistantState>({
               ? 'gemini-pro'
               : 'mistral-large'
 
+        // Load saved API keys from localStorage
+        const savedApiKeys = localStorage.getItem('cm-ai-api-keys')
+        const apiKeys = savedApiKeys
+            ? JSON.parse(savedApiKeys)
+            : {
+                  google: '',
+                  openai: '',
+                  mistral: '',
+              }
+
         return {
             activeTab: 'assistant',
             messages: [],
             isLoading: false,
             selectedModel: defaultModelId,
-            apiKeys: {
-                google: '',
-                openai: '',
-                mistral: '',
-            },
+            apiKeys,
             showSettings: false,
         }
     },
@@ -118,8 +125,12 @@ const assistantState = StateField.define<AssistantState>({
                 return {
                     ...value,
                     messages: value.messages.map(msg =>
-                        msg === effect.value.message
-                            ? { ...msg, status: effect.value.status }
+                        msg.id === effect.value.message.id
+                            ? {
+                                  ...msg,
+                                  status: effect.value.status,
+                                  content: effect.value.content ?? msg.content,
+                              }
                             : msg,
                     ),
                     isLoading:
@@ -129,13 +140,19 @@ const assistantState = StateField.define<AssistantState>({
             } else if (effect.is(selectModelEffect)) {
                 return { ...value, selectedModel: effect.value }
             } else if (effect.is(setApiKeyEffect)) {
-                return {
+                const newState = {
                     ...value,
                     apiKeys: {
                         ...value.apiKeys,
                         [effect.value.provider]: effect.value.key,
                     },
                 }
+                // Save API keys to localStorage
+                localStorage.setItem(
+                    'cm-ai-api-keys',
+                    JSON.stringify(newState.apiKeys),
+                )
+                return newState
             } else if (effect.is(toggleSettingsEffect)) {
                 return { ...value, showSettings: effect.value }
             }
@@ -150,6 +167,7 @@ const addMessageEffect = StateEffect.define<Message>()
 const updateMessageStatusEffect = StateEffect.define<{
     message: Message
     status: Message['status']
+    content?: string
 }>()
 const selectModelEffect = StateEffect.define<ModelId>()
 const setApiKeyEffect = StateEffect.define<{
@@ -605,7 +623,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
             whiteSpace: 'pre-wrap',
         })
 
-        if (message.status === 'streaming') {
+        if (message.role === 'assistant' && message.status === 'streaming') {
             contentEl.style.borderRight =
                 '2px solid var(--cm-accent-color, #4a9eff)'
             contentEl.style.animation = 'cm-blink 1s infinite'
@@ -621,7 +639,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
 
         messageEl.appendChild(contentEl)
 
-        if (message.status === 'sending') {
+        if (message.role === 'assistant' && message.status === 'sending') {
             const loadingEl = crelt('div', {}, '...')
             Object.assign(loadingEl.style, {
                 marginTop: '4px',
@@ -668,6 +686,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                     if (!apiKey) {
                         view.dispatch({
                             effects: addMessageEffect.of({
+                                id: crypto.randomUUID(),
                                 role: 'assistant',
                                 content: `Error: Please configure the API key for ${selectedModel.name} in settings.`,
                                 status: 'complete',
@@ -679,9 +698,10 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                     // Clear input and show user message as sending
                     target.value = ''
                     const userMessage: Message = {
+                        id: crypto.randomUUID(),
                         role: 'user',
                         content,
-                        status: 'sending',
+                        status: 'complete',
                     }
                     view.dispatch({
                         effects: addMessageEffect.of(userMessage),
@@ -689,6 +709,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
 
                     // Show assistant message as streaming
                     const assistantMessage: Message = {
+                        id: crypto.randomUUID(),
                         role: 'assistant',
                         content: 'Thinking...',
                         status: 'streaming',
@@ -709,36 +730,28 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                             apiKey,
                         })
 
-                        // Update messages to complete
+                        // Update the "Thinking..." message with the actual response
                         view.dispatch({
                             effects: [
                                 updateMessageStatusEffect.of({
-                                    message: userMessage,
+                                    message: assistantMessage,
                                     status: 'complete',
-                                }),
-                                addMessageEffect.of({
-                                    role: 'assistant',
                                     content: aiResponse,
-                                    status: 'complete',
                                 }),
                             ],
                         })
                     } catch (error) {
-                        // Handle error by showing error message
+                        // Update the "Thinking..." message with the error
                         view.dispatch({
                             effects: [
                                 updateMessageStatusEffect.of({
-                                    message: userMessage,
+                                    message: assistantMessage,
                                     status: 'complete',
-                                }),
-                                addMessageEffect.of({
-                                    role: 'assistant',
                                     content: `Error: ${
                                         error instanceof Error
                                             ? error.message
                                             : 'An unknown error occurred'
                                     }`,
-                                    status: 'complete',
                                 }),
                             ],
                         })
