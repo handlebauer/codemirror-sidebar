@@ -598,57 +598,101 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         gap: '12px',
     })
 
+    // Helper function to scroll to bottom
+    const scrollToBottom = () => {
+        requestAnimationFrame(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight
+        })
+    }
+
     state.messages.forEach(message => {
-        const messageEl = crelt('div')
-        Object.assign(messageEl.style, {
-            maxWidth: '85%',
-            padding: '8px 12px',
-            borderRadius: '12px',
-            fontSize: '13px',
-            lineHeight: '1.4',
-            alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
-            background:
-                message.role === 'user'
-                    ? 'var(--cm-accent-color, #4a9eff)'
-                    : 'var(--cm-message-bg, rgba(255, 255, 255, 0.05))',
-            color:
-                message.role === 'user'
-                    ? 'var(--cm-message-text, white)'
-                    : 'var(--cm-text-color, #cdc8d0)',
-            opacity: message.status === 'sending' ? '0.7' : '1',
-        })
-
-        const contentEl = crelt('div', {}, message.content)
-        Object.assign(contentEl.style, {
-            whiteSpace: 'pre-wrap',
-        })
-
-        if (message.role === 'assistant' && message.status === 'streaming') {
-            contentEl.style.borderRight =
-                '2px solid var(--cm-accent-color, #4a9eff)'
-            contentEl.style.animation = 'cm-blink 1s infinite'
-            // Add keyframe animation inline
-            const style = document.createElement('style')
-            style.textContent = `
-                @keyframes cm-blink {
-                    50% { border-color: transparent; }
-                }
-            `
-            document.head.appendChild(style)
-        }
-
-        messageEl.appendChild(contentEl)
-
-        if (message.role === 'assistant' && message.status === 'sending') {
-            const loadingEl = crelt('div', {}, '...')
-            Object.assign(loadingEl.style, {
-                marginTop: '4px',
+        // Add loading spinner before the message if it's streaming and empty
+        if (message.status === 'streaming' && !message.content) {
+            const loadingContainer = crelt('div')
+            Object.assign(loadingContainer.style, {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px 0',
+                alignSelf: 'flex-start',
                 opacity: '0.7',
             })
-            messageEl.appendChild(loadingEl)
+
+            const spinner = crelt('div')
+            Object.assign(spinner.style, {
+                width: '12px',
+                height: '12px',
+                border: '1.5px solid var(--cm-border-color, rgba(255, 255, 255, 0.05))',
+                borderTop: '1.5px solid var(--cm-text-color, #cdc8d0)',
+                borderRadius: '50%',
+                animation: 'cm-spin 0.8s linear infinite',
+            })
+
+            // Add keyframe animation for spinner if it doesn't exist
+            if (!document.querySelector('#cm-spin-keyframes')) {
+                const style = document.createElement('style')
+                style.id = 'cm-spin-keyframes'
+                style.textContent = `
+                    @keyframes cm-spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `
+                document.head.appendChild(style)
+            }
+
+            loadingContainer.appendChild(spinner)
+            messagesContainer.appendChild(loadingContainer)
         }
 
-        messagesContainer.appendChild(messageEl)
+        // Only show message if it has content or is not streaming
+        if (message.content || message.status !== 'streaming') {
+            const messageEl = crelt('div')
+            Object.assign(messageEl.style, {
+                maxWidth: '85%',
+                padding: '8px 12px',
+                borderRadius: '12px',
+                fontSize: '13px',
+                lineHeight: '1.4',
+                alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
+                background:
+                    message.role === 'user'
+                        ? 'var(--cm-accent-color, rgba(74, 158, 255, 0.2))'
+                        : 'var(--cm-message-bg, rgba(255, 255, 255, 0.05))',
+                color:
+                    message.role === 'user'
+                        ? 'var(--cm-message-text, white)'
+                        : 'var(--cm-text-color, #cdc8d0)',
+            })
+
+            const contentEl = crelt('div', {}, message.content)
+            Object.assign(contentEl.style, {
+                whiteSpace: 'pre-wrap',
+                lineHeight: '20px', // Set a fixed line height
+            })
+
+            // Process only inline single backtick code blocks, ignore triple backtick blocks
+            const inlineCodeRegex = /(?<!`)`([^`]+)`(?!`)/g
+            contentEl.innerHTML = message.content.replace(
+                inlineCodeRegex,
+                (_, code) => {
+                    return `<code style="
+                    background: var(--cm-code-bg, rgba(96, 125, 139, 0.3));
+                    padding: 1px 4px;
+                    border-radius: 3px;
+                    font-family: monospace;
+                    font-size: 12px;
+                    display: inline;
+                    white-space: pre;
+                    color: var(--cm-code-color, #e5e7eb);
+                ">${code}</code>`
+                },
+            )
+
+            messageEl.appendChild(contentEl)
+            messagesContainer.appendChild(messageEl)
+            scrollToBottom()
+        }
     })
     dom.appendChild(messagesContainer)
 
@@ -711,7 +755,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                     const assistantMessage: Message = {
                         id: crypto.randomUUID(),
                         role: 'assistant',
-                        content: 'Thinking...',
+                        content: '', // Empty content initially
                         status: 'streaming',
                     }
                     view.dispatch({
@@ -740,6 +784,16 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                                         }),
                                     ],
                                 })
+                                // Ensure we scroll to bottom when new content is streamed
+                                const messagesContainer = view.dom
+                                    .querySelector('.cm-assistant-content')
+                                    ?.querySelector(
+                                        'div[style*="overflow-y: auto"]',
+                                    )
+                                if (messagesContainer) {
+                                    messagesContainer.scrollTop =
+                                        messagesContainer.scrollHeight
+                                }
                             },
                         })
 
@@ -754,7 +808,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                             ],
                         })
                     } catch (error) {
-                        // Update the "Thinking..." message with the error
+                        // Update with error message
                         view.dispatch({
                             effects: [
                                 updateMessageStatusEffect.of({
