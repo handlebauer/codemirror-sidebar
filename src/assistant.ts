@@ -168,7 +168,8 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
-        padding: '12px 12px 0',
+        boxSizing: 'border-box',
+        padding: '12px',
     })
 
     // Header container with back button
@@ -263,7 +264,7 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
-            padding: '12px',
+            padding: '12px 12px 6px 12px',
             background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.03))',
             borderRadius: '4px',
         })
@@ -431,7 +432,8 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         flexDirection: 'column',
         height: '100%',
         overflow: 'hidden',
-        padding: '12px 12px 0',
+        boxSizing: 'border-box',
+        padding: '12px 12px 6px 12px',
     })
 
     // Create tabs
@@ -590,7 +592,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     const inputContainer = crelt('div')
     Object.assign(inputContainer.style, {
         borderTop: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
-        padding: '12px',
+        padding: '12px 12px 6px 12px',
         width: '100%',
         boxSizing: 'border-box',
     })
@@ -713,7 +715,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
         boxSizing: 'border-box',
         background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.05))',
         border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
-        borderRadius: '8px',
+        borderRadius: '4px',
         color: 'var(--cm-text-color, #cdc8d0)',
         padding: '8px 12px',
         fontSize: '13px',
