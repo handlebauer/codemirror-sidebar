@@ -25,3 +25,6 @@ export interface Tool {
     description: string
     parameters: Record<string, unknown>
 }
+
+export type ModelProvider = 'google' | 'openai' | 'mistral'
+export type ModelId = 'gemini-pro' | 'gpt-4' | 'mistral-large'

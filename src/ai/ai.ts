@@ -60,45 +60,31 @@ const createAIService = (): AIService => {
                     //     system: 'You are a helpful assistant that can help with coding tasks.',
                     //     prompt: fullPrompt,
                     // })
-                    // Simulate a simple response for testing
-                    const simulatedResponse = `# Here's a simulated response with code examples
 
-## Let's start with a simple inline code example: \`console.log('hello world')\`
+                    // Simulate a realistic streaming response
+                    const simulatedResponse = [
+                        "# Here's a simulated response with code examples\n\n",
+                        "## Let's start with a simple inline code example: ",
+                        "`console.log('hello world')`\n\n",
+                        "Here's a multiline code block:\n\n```javascript\nfunction greet(name) {\n",
+                        '    console.log(`Hello, ${name}!`)\n    return {\n',
+                        "        message: 'Greeting sent',\n        timestamp: new Date()\n    }\n}\n\n",
+                        "// Example usage\nconst result = greet('Developer')\n```\n\n",
+                        'You can also use inline code for variables like `result` or ',
+                        "`name`.\n\nHere's another code block with a different language:\n\n",
+                        '```python\ndef calculate_sum(numbers):\n    total = 0\n',
+                        '    for num in numbers:\n        total += num\n    return total\n\n',
+                        '# Test the function\nnumbers = [1, 2, 3, 4, 5]\nprint(f"Sum: {calculate_sum(numbers)}")\n```',
+                    ]
 
-Here's a multiline code block:
-
-\`\`\`javascript
-function greet(name) {
-    console.log(\`Hello, \${name}!\`)
-    return {
-        message: 'Greeting sent',
-        timestamp: new Date()
-    }
-}
-
-// Example usage
-const result = greet('Developer')
-\`\`\`
-
-You can also use inline code for variables like \`result\` or \`name\`.
-
-Here's another code block with a different language:
-
-\`\`\`python
-def calculate_sum(numbers):
-    total = 0
-    for num in numbers:
-        total += num
-    return total
-
-# Test the function
-numbers = [1, 2, 3, 4, 5]
-print(f"Sum: {calculate_sum(numbers)}")
-\`\`\`
-`
                     result = {
                         textStream: (async function* () {
-                            yield simulatedResponse
+                            for (const chunk of simulatedResponse) {
+                                await new Promise(resolve =>
+                                    setTimeout(resolve, 1000),
+                                )
+                                yield chunk
+                            }
                         })(),
                     }
                     break
