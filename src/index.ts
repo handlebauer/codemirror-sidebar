@@ -23,6 +23,36 @@ interface SidebarExtensionOptions {
     toggleKeymaps?: { mac?: string; win?: string } // Optional keymap configuration
 }
 
+// Global keymap handler for sidebars
+const globalKeymapHandlers = new Map<string, (view: EditorView) => boolean>()
+
+function handleGlobalKeyEvent(event: KeyboardEvent) {
+    const isMac = /Mac/.test(navigator.platform)
+    const modKey = isMac ? event.metaKey : event.ctrlKey
+    if (!modKey) return
+
+    const key = `${isMac ? 'Cmd' : 'Ctrl'}-${event.key.toLowerCase()}`
+    const handler = globalKeymapHandlers.get(key)
+    if (handler) {
+        // Find the EditorView instance
+        const editorElement = document.querySelector(
+            '.cm-editor',
+        ) as HTMLElement
+        if (editorElement) {
+            const view = EditorView.findFromDOM(editorElement)
+            if (view) {
+                event.preventDefault()
+                handler(view)
+            }
+        }
+    }
+}
+
+// Initialize global keymap listener
+if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleGlobalKeyEvent)
+}
+
 export function sidebarExtension(
     options: SidebarExtensionOptions = {},
 ): Extension[] {
@@ -48,25 +78,19 @@ export function sidebarExtension(
             }),
         )
 
-        // Add keymap if configured
+        // Register global keymap handlers if configured
         if (toggleKeymaps) {
-            const keymapBindings = []
             if (toggleKeymaps.mac) {
-                keymapBindings.push({
-                    key: toggleKeymaps.mac,
-                    run: (view: EditorView) =>
-                        toggleSidebarCommand(view, sidebarId),
-                })
+                globalKeymapHandlers.set(
+                    toggleKeymaps.mac,
+                    (view: EditorView) => toggleSidebarCommand(view, sidebarId),
+                )
             }
             if (toggleKeymaps.win) {
-                keymapBindings.push({
-                    key: toggleKeymaps.win,
-                    run: (view: EditorView) =>
-                        toggleSidebarCommand(view, sidebarId),
-                })
-            }
-            if (keymapBindings.length > 0) {
-                extensions.push(keymap.of(keymapBindings))
+                globalKeymapHandlers.set(
+                    toggleKeymaps.win,
+                    (view: EditorView) => toggleSidebarCommand(view, sidebarId),
+                )
             }
         }
     }
@@ -92,25 +116,17 @@ export function createAISidebar(options: AISidebarOptions = {}): Extension[] {
         ...assistant, // Add the assistant extension
     ]
 
-    // Add keymap if configured
+    // Register global keymap handlers if configured
     if (toggleKeymaps) {
-        const keymapBindings = []
         if (toggleKeymaps.mac) {
-            keymapBindings.push({
-                key: toggleKeymaps.mac,
-                run: (view: EditorView) =>
-                    toggleSidebarCommand(view, 'ai-assistant'),
-            })
+            globalKeymapHandlers.set(toggleKeymaps.mac, (view: EditorView) =>
+                toggleSidebarCommand(view, 'ai-assistant'),
+            )
         }
         if (toggleKeymaps.win) {
-            keymapBindings.push({
-                key: toggleKeymaps.win,
-                run: (view: EditorView) =>
-                    toggleSidebarCommand(view, 'ai-assistant'),
-            })
-        }
-        if (keymapBindings.length > 0) {
-            extensions.push(keymap.of(keymapBindings))
+            globalKeymapHandlers.set(toggleKeymaps.win, (view: EditorView) =>
+                toggleSidebarCommand(view, 'ai-assistant'),
+            )
         }
     }
 
