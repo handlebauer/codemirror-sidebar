@@ -1,4 +1,4 @@
-import { generateText } from 'ai'
+import { streamText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createMistral } from '@ai-sdk/mistral'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
@@ -10,6 +10,7 @@ interface GenerateTextParams {
     prompt: string
     editorContent: string
     apiKey?: string
+    onTextContent?: (text: string) => void
 }
 
 interface AIService {
@@ -27,6 +28,7 @@ const createAIService = (): AIService => {
         prompt,
         editorContent,
         apiKey,
+        onTextContent,
     }: GenerateTextParams): Promise<string> => {
         if (!apiKey) {
             throw new Error(
@@ -38,6 +40,7 @@ const createAIService = (): AIService => {
         const fullPrompt = `Current Editor Content:\n${editorContent}\n\n${prompt}`
 
         let result
+        let fullText = ''
 
         debug('Generating text for model:', modelName)
         debug('Prompt:', fullPrompt)
@@ -49,7 +52,7 @@ const createAIService = (): AIService => {
                         apiKey,
                         compatibility: 'strict',
                     })
-                    result = await generateText({
+                    result = await streamText({
                         model: openaiClient('gpt-4'),
                         system: 'You are a helpful assistant that can help with coding tasks.',
                         prompt: fullPrompt,
@@ -60,7 +63,7 @@ const createAIService = (): AIService => {
                     const mistralClient = createMistral({
                         apiKey,
                     })
-                    result = await generateText({
+                    result = await streamText({
                         model: mistralClient('mistral-large-latest'),
                         system: 'You are a helpful assistant that can help with coding tasks.',
                         prompt: fullPrompt,
@@ -71,7 +74,7 @@ const createAIService = (): AIService => {
                     const googleClient = createGoogleGenerativeAI({
                         apiKey,
                     })
-                    result = await generateText({
+                    result = await streamText({
                         model: googleClient('gemini-2.0-flash-001'),
                         system: 'You are a helpful assistant that can help with coding tasks.',
                         prompt: fullPrompt,
@@ -86,14 +89,20 @@ const createAIService = (): AIService => {
                         apiKey,
                         compatibility: 'strict',
                     })
-                    result = await generateText({
+                    result = await streamText({
                         model: openaiClient('gpt-4'),
                         prompt: fullPrompt,
                     })
                 }
             }
 
-            return result.text
+            // Process the stream
+            for await (const textPart of result.textStream) {
+                fullText += textPart
+                onTextContent?.(fullText)
+            }
+
+            return fullText
         } catch (error) {
             debug('Error:', error)
             throw error
@@ -108,5 +117,5 @@ const createAIService = (): AIService => {
 }
 
 export const aiService = createAIService()
-export type { AIService }
+export type { AIService, GenerateTextParams }
 export { DEFAULT_MODEL }

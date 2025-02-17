@@ -721,6 +721,7 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                     try {
                         // Get the current editor content
                         const editorContent = view.state.doc.toString()
+                        let streamedContent = ''
 
                         // Use the AI service to generate text
                         const aiResponse = await aiService.generateText({
@@ -728,15 +729,27 @@ function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
                             prompt: content,
                             editorContent: editorContent,
                             apiKey,
+                            onTextContent: text => {
+                                streamedContent = text
+                                view.dispatch({
+                                    effects: [
+                                        updateMessageStatusEffect.of({
+                                            message: assistantMessage,
+                                            status: 'streaming',
+                                            content: text,
+                                        }),
+                                    ],
+                                })
+                            },
                         })
 
-                        // Update the "Thinking..." message with the actual response
+                        // Update the message with final status once streaming is complete
                         view.dispatch({
                             effects: [
                                 updateMessageStatusEffect.of({
                                     message: assistantMessage,
                                     status: 'complete',
-                                    content: aiResponse,
+                                    content: streamedContent || aiResponse,
                                 }),
                             ],
                         })
