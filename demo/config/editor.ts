@@ -22,7 +22,7 @@ export function createEditorExtensions(): Extension[] {
         }),
         // AI assistant sidebar on the right
         createAISidebar({
-            width: '300px',
+            width: '400px',
             backgroundColor: '#2c313a',
             toggleKeymaps: {
                 mac: 'Cmd-r',

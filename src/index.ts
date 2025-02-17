@@ -4,12 +4,18 @@ import { defaultKeymap } from '@codemirror/commands'
 import {
     createSidebar,
     type SidebarOptions,
+    type SidebarPanelSpec,
+    type DockPosition,
     toggleSidebarCommand,
     toggleSidebarEffect,
+    sidebarPanel,
+    updateSidebarOptionsEffect,
+    setActivePanelEffect,
 } from './sidebar'
 import { fileExplorer } from './explorer'
 import { javascript } from '@codemirror/lang-javascript' // Or a default language
 import { type Extension } from '@codemirror/state'
+import { assistant } from './assistant'
 
 interface SidebarExtensionOptions {
     language?: Extension // Allow overriding the language
@@ -69,19 +75,22 @@ export function sidebarExtension(
 }
 
 // Example of creating a second sidebar (e.g., for an AI assistant)
-export interface AISidebarOptions extends Partial<SidebarOptions> {
+interface AISidebarOptions extends Omit<SidebarOptions, 'id' | 'dock'> {
     toggleKeymaps?: { mac?: string; win?: string }
 }
 
 export function createAISidebar(options: AISidebarOptions = {}): Extension[] {
     const { toggleKeymaps, ...sidebarOptions } = options
-    const extensions = createSidebar({
-        dock: 'right',
-        width: '300px',
-        id: 'ai-assistant',
-        overlay: true, // AI sidebar defaults to overlay mode
-        ...sidebarOptions,
-    })
+    const extensions = [
+        ...createSidebar({
+            dock: 'right',
+            width: '300px',
+            id: 'ai-assistant',
+            overlay: true, // AI sidebar defaults to overlay mode
+            ...sidebarOptions,
+        }),
+        ...assistant, // Add the assistant extension
+    ]
 
     // Add keymap if configured
     if (toggleKeymaps) {
@@ -108,4 +117,11 @@ export function createAISidebar(options: AISidebarOptions = {}): Extension[] {
     return extensions
 }
 
-export { toggleSidebarEffect }
+export type { SidebarPanelSpec, SidebarOptions, DockPosition, AISidebarOptions }
+export {
+    toggleSidebarCommand,
+    toggleSidebarEffect,
+    sidebarPanel,
+    updateSidebarOptionsEffect,
+    setActivePanelEffect,
+}
