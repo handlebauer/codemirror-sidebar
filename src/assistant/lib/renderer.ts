@@ -1,6 +1,6 @@
 import { EditorView } from '@codemirror/view'
 import crelt from 'crelt'
-import { parseCodeBlocks, renderCodeBlock } from './codeblock'
+import { parseCodeBlocks, CodeBlockWidget } from './codeblock'
 import {
     assistantState,
     toggleSettingsEffect,
@@ -566,14 +566,19 @@ export function renderMessage(
         // Process each segment
         segments.forEach(segment => {
             if (segment.type === 'code' || segment.type === 'incomplete-code') {
-                renderCodeBlock(
-                    {
-                        type: segment.type,
-                        content: segment.content,
-                        language: segment.language,
-                    },
-                    contentEl,
+                const codeBlockContainer = crelt('div')
+                Object.assign(
+                    codeBlockContainer.style,
+                    styles.codeBlockContainerStyles,
                 )
+
+                const widget = new CodeBlockWidget(
+                    segment.type === 'code' ? segment.content : '',
+                    segment.language || null,
+                    segment.type === 'incomplete-code',
+                )
+                codeBlockContainer.appendChild(widget.toDOM())
+                contentEl.appendChild(codeBlockContainer)
             } else if (segment.type === 'text') {
                 // Process text segment for inline code
                 const textContainer = crelt('div')

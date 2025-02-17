@@ -7,7 +7,6 @@ import { python } from '@codemirror/lang-python'
 import { LanguageSupport } from '@codemirror/language'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
-import crelt from 'crelt'
 import * as styles from './styles'
 
 // Interface for storing code block information
@@ -42,16 +41,22 @@ const getLanguageSupport = (lang: string): LanguageSupport | null => {
 // Widget for rendering code blocks
 class CodeBlockWidget extends WidgetType {
     private view: EditorView | null = null
+    private static chunkCounter = 0
 
     constructor(
         readonly code: string,
         readonly language: string | null,
+        readonly isIncomplete: boolean = false,
     ) {
         super()
     }
 
     eq(other: CodeBlockWidget): boolean {
-        return this.code === other.code && this.language === other.language
+        return (
+            this.code === other.code &&
+            this.language === other.language &&
+            this.isIncomplete === other.isIncomplete
+        )
     }
 
     destroy() {
@@ -79,57 +84,112 @@ class CodeBlockWidget extends WidgetType {
             langText.textContent = this.language
             header.appendChild(langText)
 
+            // Add loading dots for incomplete blocks
+            if (this.isIncomplete) {
+                // Increment chunk counter and wrap around at 3
+                CodeBlockWidget.chunkCounter =
+                    (CodeBlockWidget.chunkCounter + 1) % 3
+
+                const loadingDots = document.createElement('div')
+                Object.assign(loadingDots.style, styles.loadingDotsStyles)
+
+                // Create three dots that fill in sequence based on chunk count
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div')
+                    Object.assign(
+                        dot.style,
+                        i <= CodeBlockWidget.chunkCounter
+                            ? styles.loadingDotFilledStyles
+                            : styles.loadingDotEmptyStyles,
+                    )
+                    loadingDots.appendChild(dot)
+                }
+
+                header.appendChild(loadingDots)
+            }
+
+            // Add copy button (only for complete blocks)
+            if (!this.isIncomplete) {
+                const copyButton = document.createElement('button')
+                Object.assign(copyButton.style, styles.copyButtonStyles)
+                copyButton.title = 'Copy code'
+                copyButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>`
+
+                copyButton.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(this.code)
+                        const originalHTML = copyButton.innerHTML
+                        copyButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>`
+                        setTimeout(() => {
+                            copyButton.innerHTML = originalHTML
+                        }, 2000)
+                    } catch (err) {
+                        console.error('Failed to copy code:', err)
+                    }
+                })
+
+                header.appendChild(copyButton)
+            }
+
             wrapper.appendChild(header)
         }
 
-        // Create the nested editor
-        const editorContainer = document.createElement('div')
-        Object.assign(editorContainer.style, styles.codeBlockContentStyles)
-        editorContainer.className = 'cm-ai-codeblock-content'
+        // Only create editor container if we have complete content
+        if (!this.isIncomplete) {
+            const editorContainer = document.createElement('div')
+            Object.assign(editorContainer.style, styles.codeBlockContentStyles)
+            editorContainer.className = 'cm-ai-codeblock-content'
 
-        const languageSupport = this.language
-            ? getLanguageSupport(this.language)
-            : null
-        const extensions: Extension[] = [
-            EditorView.editable.of(false),
-            EditorView.lineWrapping,
-            EditorState.readOnly.of(true),
-            oneDark,
-            EditorView.theme({
-                '&': {
-                    backgroundColor: 'transparent !important',
-                },
-                '.cm-content': {
-                    padding: '0 !important',
-                    fontFamily:
-                        'var(--cm-font-family-mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace) !important',
-                    fontSize: '13px !important',
-                    lineHeight: '1.5 !important',
-                },
-                '.cm-line': {
-                    padding: '0 !important',
-                },
-                '.cm-scroller': {
-                    height: 'auto !important',
-                    flex: 'initial !important',
-                    width: '100% !important',
-                },
-            }),
-        ]
+            const languageSupport = this.language
+                ? getLanguageSupport(this.language)
+                : null
+            const extensions: Extension[] = [
+                EditorView.editable.of(false),
+                EditorView.lineWrapping,
+                EditorState.readOnly.of(true),
+                oneDark,
+                EditorView.theme({
+                    '&': {
+                        backgroundColor: 'transparent !important',
+                    },
+                    '.cm-content': {
+                        padding: '0 !important',
+                        fontFamily:
+                            'var(--cm-font-family-mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace) !important',
+                        fontSize: '13px !important',
+                        lineHeight: '1.5 !important',
+                    },
+                    '.cm-line': {
+                        padding: '0 !important',
+                    },
+                    '.cm-scroller': {
+                        height: 'auto !important',
+                        flex: 'initial !important',
+                        width: '100% !important',
+                    },
+                }),
+            ]
 
-        if (languageSupport) {
-            extensions.push(languageSupport)
+            if (languageSupport) {
+                extensions.push(languageSupport)
+            }
+
+            this.view = new EditorView({
+                state: EditorState.create({
+                    doc: this.code,
+                    extensions,
+                }),
+                parent: editorContainer,
+            })
+
+            wrapper.appendChild(editorContainer)
         }
 
-        this.view = new EditorView({
-            state: EditorState.create({
-                doc: this.code,
-                extensions,
-            }),
-            parent: editorContainer,
-        })
-
-        wrapper.appendChild(editorContainer)
         return wrapper
     }
 }
@@ -191,90 +251,5 @@ const parseCodeBlocks = (text: string): CodeBlockInfo[] => {
 export const aiCodeBlockExtension = [codeBlockState]
 
 // Export helper functions and types
-export { addCodeBlock, removeCodeBlocks, parseCodeBlocks }
+export { addCodeBlock, removeCodeBlocks, parseCodeBlocks, CodeBlockWidget }
 export type { CodeBlockInfo }
-
-// Keep track of chunk count to determine which dots to fill
-let chunkCounter = 0
-
-export function renderCodeBlock(
-    segment: {
-        type: 'code' | 'incomplete-code'
-        content: string
-        language?: string | null
-    },
-    container: HTMLElement,
-) {
-    const codeBlockContainer = crelt('div')
-    Object.assign(codeBlockContainer.style, styles.codeBlockContainerStyles)
-
-    // Add language header if present
-    if (segment.language) {
-        const header = crelt('div')
-        Object.assign(header.style, styles.codeBlockHeaderStyles)
-
-        const dot = crelt('span')
-        dot.textContent = '●'
-        Object.assign(dot.style, styles.dotStyles)
-        header.appendChild(dot)
-
-        const langText = crelt('span')
-        langText.textContent = segment.language
-        header.appendChild(langText)
-
-        if (segment.type === 'incomplete-code') {
-            // Increment chunk counter and wrap around at 3
-            chunkCounter = (chunkCounter + 1) % 3
-
-            const loadingDots = crelt('div')
-            Object.assign(loadingDots.style, styles.loadingDotsStyles)
-
-            // Create three dots that fill in sequence based on chunk count
-            for (let i = 0; i < 3; i++) {
-                const dot = crelt('div')
-                // Fill dots up to the current chunk count
-                Object.assign(
-                    dot.style,
-                    i <= chunkCounter
-                        ? styles.loadingDotFilledStyles
-                        : styles.loadingDotEmptyStyles,
-                )
-                loadingDots.appendChild(dot)
-            }
-
-            header.appendChild(loadingDots)
-        }
-
-        codeBlockContainer.appendChild(header)
-    }
-
-    if (segment.type === 'incomplete-code') {
-        // Create loading container for incomplete code block
-        const loadingContainer = crelt('div')
-        Object.assign(
-            loadingContainer.style,
-            styles.incompleteCodeLoadingContainerStyles,
-        )
-        codeBlockContainer.appendChild(loadingContainer)
-    } else {
-        // Create code block editor for complete blocks
-        new EditorView({
-            state: EditorState.create({
-                doc: segment.content,
-                extensions: [
-                    EditorView.editable.of(false),
-                    EditorState.readOnly.of(true),
-                    EditorView.lineWrapping,
-                    oneDark,
-                    segment.language
-                        ? (getLanguageSupport(segment.language) ?? [])
-                        : [],
-                    styles.codeBlockEditorTheme,
-                ],
-            }),
-            parent: codeBlockContainer,
-        })
-    }
-
-    container.appendChild(codeBlockContainer)
-}

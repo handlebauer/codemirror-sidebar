@@ -166,7 +166,7 @@ export const codeBlockContainerStyles = {
     borderRadius: '8px',
     overflow: 'hidden',
     backgroundColor: '#1e1e1e',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
 }
 
 export const codeBlockEditorTheme = EditorView.theme({
@@ -209,6 +209,21 @@ export const codeBlockHeaderStyles = {
     alignItems: 'center',
     gap: '6px',
     userSelect: 'none',
+    position: 'relative',
+}
+
+export const copyButtonStyles = {
+    marginLeft: 'auto',
+    background: 'none',
+    border: 'none',
+    padding: '4px',
+    cursor: 'pointer',
+    color: 'var(--cm-text-secondary, rgba(255, 255, 255, 0.6))',
+    opacity: '0.7',
+    transition: 'opacity 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
 }
 
 export const dotStyles = {
@@ -228,14 +243,16 @@ export const headerSpinnerStyles = {
 }
 
 export const incompleteCodeLoadingContainerStyles = {
-    padding: '4px',
+    padding: '16px',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    justifyContent: 'center',
+    minHeight: '60px',
     color: 'var(--cm-text-secondary, rgba(255, 255, 255, 0.6))',
     fontFamily: 'var(--cm-font-family-mono, monospace)',
     fontSize: '13px',
-    minHeight: '50px',
+    background: 'var(--cm-code-bg, rgba(96, 125, 139, 0.1))',
+    borderTop: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
 }
 
 export const textContainerStyles = {
@@ -338,7 +355,7 @@ export const codeBlockWrapperStyles = {
     margin: '0',
     overflow: 'hidden',
     backgroundColor: '#1e1e1e',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
 }
 
 export const codeBlockContentStyles = {

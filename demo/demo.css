@@ -99,7 +99,6 @@ body {
     border-radius: 0;
     overflow: hidden;
     box-shadow: none;
-    height: calc(100vh - 45px); /* Subtract toolbar height */
     flex: 1;
     position: relative;
     display: flex;
