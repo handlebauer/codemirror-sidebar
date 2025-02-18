@@ -1,23 +1,165 @@
-<p align="left">
-  <img src="https://placehold.co/300x200?text=Logo%20Here" alt="Your Project Logo" width="200">
-</p>
+# CodeMirror Sidebar Extensions
 
-### package_name
+A powerful set of sidebar extensions for CodeMirror 6 that adds file explorer and AI assistance capabilities to your editor. This package includes three main components:
 
-Description goes here
+1. **Sidebar Framework**: A flexible and customizable sidebar system that can be docked to either side of the editor
+2. **File Explorer**: A full-featured file explorer panel for navigating and managing your project files
+3. **AI Assistant**: An intelligent coding assistant panel with support for multiple AI models
 
-#### Installation
+## Features
 
-1.
-2.
-3.
-4.
-5.
+### Sidebar Framework
 
-#### Usage
+- Flexible docking system (left or right side)
+- Resizable panels with drag handles
+- Overlay or inline modes
+- Customizable width and background color
+- Keyboard shortcuts for toggling visibility
 
-1.
-2.
-3.
-4.
-5.
+### File Explorer
+
+- Tree-based file navigation
+- File and directory management
+- Syntax highlighting based on file type
+- Automatic language detection
+- Selected file highlighting
+- Expandable/collapsible directories
+
+### AI Assistant
+
+- Multiple AI model support
+- Code-aware conversations
+- Code block parsing and syntax highlighting
+- Settings management for API keys
+- Tab-based interface
+- Real-time message status updates
+
+## Installation
+
+```bash
+npm install @handlebauer/codemirror-sidebar
+yarn add @handlebauer/codemirror-sidebar
+pnpm add @handlebauer/codemirror-sidebar
+bun add @handlebauer/codemirror-sidebar
+```
+
+## Usage
+
+### Basic Setup
+
+```typescript
+import { EditorState } from '@codemirror/state'
+import { EditorView } from '@codemirror/view'
+import {
+    sidebarExtension,
+    createAISidebar,
+} from '@handlebauer/codemirror-sidebar'
+
+// Create editor with both sidebars
+const state = EditorState.create({
+    doc: 'Your initial content here',
+    extensions: [
+        // ... other extensions ...
+
+        // Add file explorer sidebar (left)
+        ...sidebarExtension({
+            sidebarOptions: {
+                id: 'file-explorer',
+                dock: 'left',
+                overlay: false,
+                width: '250px',
+                backgroundColor: '#2c313a',
+            },
+            toggleKeymaps: {
+                mac: 'Cmd-b',
+                win: 'Ctrl-b',
+            },
+        }),
+
+        // Add AI assistant sidebar (right)
+        ...createAISidebar({
+            width: '400px',
+            backgroundColor: '#2c313a',
+            toggleKeymaps: {
+                mac: 'Cmd-r',
+                win: 'Ctrl-r',
+            },
+        }),
+    ],
+})
+
+const view = new EditorView({
+    state,
+    parent: document.querySelector('#editor'),
+})
+```
+
+### File Explorer Configuration
+
+```typescript
+import { updateFilesEffect } from '@handlebauer/codemirror-sidebar'
+
+// Update files in the explorer
+view.dispatch({
+    effects: [
+        updateFilesEffect.of([
+            {
+                name: 'example.ts',
+                content: 'console.log("Hello World")',
+            },
+            // ... more files
+        ]),
+    ],
+})
+```
+
+### AI Assistant Configuration
+
+```typescript
+import { setApiKeyEffect } from '@handlebauer/codemirror-sidebar'
+
+// Configure AI assistant
+view.dispatch({
+    effects: [setApiKeyEffect.of('your-api-key')],
+})
+```
+
+## API Reference
+
+### Sidebar Options
+
+```typescript
+interface SidebarOptions {
+    id: string
+    dock: 'left' | 'right'
+    width?: string
+    backgroundColor?: string
+    overlay?: boolean
+}
+```
+
+### File Explorer Types
+
+```typescript
+interface File {
+    name: string
+    content: string
+}
+```
+
+### AI Assistant Types
+
+```typescript
+interface AISidebarOptions {
+    width?: string
+    backgroundColor?: string
+    toggleKeymaps?: {
+        mac?: string
+        win?: string
+    }
+}
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
