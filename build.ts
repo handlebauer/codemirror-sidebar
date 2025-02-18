@@ -2,7 +2,12 @@ import { $ } from 'bun'
 import { config } from './src/config'
 
 await Bun.build({
-    entrypoints: ['./src/index.ts'],
+    entrypoints: [
+        './src/index.ts',
+        './src/explorer/index.ts',
+        './src/assistant/index.ts',
+        './src/hooks/index.ts',
+    ],
     outdir: './dist',
     target: config.BUILD_TARGET,
 })
