@@ -2,7 +2,14 @@ import { type Extension } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { type DockPosition } from '../sidebar'
 import { createSidebar, sidebarPanel, toggleSidebarCommand } from '../sidebar'
-import { fileExplorerState, fileExplorerPanelSpec, type File } from './state'
+import {
+    fileExplorerState,
+    fileExplorerPanelSpec,
+    type File,
+    // Internal implementation details, not exported to userland
+    fileExplorerPlugin,
+    languageCompartment,
+} from './state'
 
 // Global keymap handler for sidebars
 const globalKeymapHandlers = new Map<string, (view: EditorView) => boolean>()
@@ -104,7 +111,9 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
     return [
         ...createSidebar(sidebarOptions),
         fileExplorerState,
+        fileExplorerPlugin,
         sidebarPanel.of(fileExplorerPanelSpec),
+        languageCompartment.of([]), // Initialize language compartment with empty configuration
     ]
 }
 

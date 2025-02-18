@@ -1,13 +1,23 @@
-import { StateField, StateEffect } from '@codemirror/state'
-import { EditorView } from '@codemirror/view'
+import { StateField, StateEffect, Compartment } from '@codemirror/state'
+import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+import { markdown } from '@codemirror/lang-markdown'
+import { json } from '@codemirror/lang-json'
 import crelt from 'crelt'
 import { styles, inlineStyles } from './styles'
 
-// Define the File type
+// Add debug logging helper
+const debug = (...args: unknown[]) => console.log('[Explorer]', ...args)
+
+// Public types and effects
 export interface File {
     name: string
     content: string
 }
+
+// Internal implementation details below
+// Not exported to userland through index.ts
 
 // Define the File Explorer State
 interface FileExplorerState {
@@ -15,6 +25,30 @@ interface FileExplorerState {
     selectedFile: string | null
     expandedDirs: Set<string>
     projectName?: string
+}
+
+// Create a compartment for language support
+export const languageCompartment = new Compartment()
+
+// Language detection based on file extension
+function getLanguageExtension(filename: string) {
+    const ext = filename.toLowerCase().split('.').pop()
+    switch (ext) {
+        case 'js':
+        case 'jsx':
+        case 'ts':
+        case 'tsx':
+            return javascript({ typescript: ext.startsWith('ts') })
+        case 'py':
+            return python()
+        case 'md':
+        case 'markdown':
+            return markdown()
+        case 'json':
+            return json()
+        default:
+            return null
+    }
 }
 
 // Define state effects
@@ -36,8 +70,10 @@ export const fileExplorerState = StateField.define<FileExplorerState>({
     update(value, transaction) {
         for (const effect of transaction.effects) {
             if (effect.is(selectFileEffect)) {
+                debug('File selected:', effect.value)
                 return { ...value, selectedFile: effect.value }
             } else if (effect.is(updateFilesEffect)) {
+                debug('Files updated:', effect.value.length, 'files')
                 return {
                     ...value,
                     files: effect.value,
@@ -50,8 +86,10 @@ export const fileExplorerState = StateField.define<FileExplorerState>({
                 } else {
                     newExpandedDirs.add(effect.value)
                 }
+                debug('Directory toggled:', effect.value)
                 return { ...value, expandedDirs: newExpandedDirs }
             } else if (effect.is(setProjectNameEffect)) {
+                debug('Project name set:', effect.value)
                 return { ...value, projectName: effect.value }
             }
         }
@@ -63,6 +101,7 @@ export const fileExplorerState = StateField.define<FileExplorerState>({
 export const fileExplorerPanelSpec = {
     id: 'file-explorer',
     create(view: EditorView): HTMLElement {
+        debug('Creating file explorer panel')
         const dom = crelt('div', { class: styles.explorerContent })
         renderFileExplorer(dom, view)
         return dom
@@ -238,8 +277,19 @@ function renderFileNode(
                 style: `padding-left: ${indentation}px`,
                 onclick: () => {
                     if (node.content) {
+                        debug('Loading file:', node.path)
+                        const langExtension = getLanguageExtension(node.path)
                         view.dispatch({
-                            effects: [selectFileEffect.of(node.path)],
+                            effects: [
+                                selectFileEffect.of(node.path),
+                                ...(langExtension
+                                    ? [
+                                          languageCompartment.reconfigure(
+                                              langExtension,
+                                          ),
+                                      ]
+                                    : []),
+                            ],
                             changes: {
                                 from: 0,
                                 to: view.state.doc.length,
@@ -254,3 +304,23 @@ function renderFileNode(
         container.appendChild(fileItem)
     }
 }
+
+// Add ViewPlugin for handling state updates
+export const fileExplorerPlugin = ViewPlugin.fromClass(
+    class {
+        update(update: ViewUpdate) {
+            if (
+                update.state.field(fileExplorerState) !==
+                update.startState.field(fileExplorerState)
+            ) {
+                debug('Explorer state changed, updating panel')
+                const dom = update.view.dom.querySelector(
+                    `.${styles.explorerContent}`,
+                )
+                if (dom) {
+                    renderFileExplorer(dom as HTMLElement, update.view)
+                }
+            }
+        }
+    },
+)
