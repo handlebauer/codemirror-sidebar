@@ -198,7 +198,7 @@ function renderFileNode(
             'li',
             {
                 class: `${styles.explorerItem} ${styles.explorerDirectoryItem}`,
-                style: `${inlineStyles.directoryItem}; padding-left: ${indentation}px`,
+                style: `padding-left: ${indentation}px`,
                 onclick: () => {
                     view.dispatch({
                         effects: toggleDirEffect.of(node.path),
@@ -235,7 +235,7 @@ function renderFileNode(
                         ? ` ${styles.explorerItemSelected}`
                         : ''
                 }`,
-                style: `${inlineStyles.fileItem}; padding-left: ${indentation}px`,
+                style: `padding-left: ${indentation}px`,
                 onclick: () =>
                     handleFileClick(
                         { name: node.path, content: node.content! },
@@ -258,7 +258,12 @@ function renderFileExplorer(dom: HTMLElement, view: EditorView) {
         },
         explorerState.projectName || 'Files',
     )
-    const fileList = crelt('ul', { class: styles.explorerList })
+    const fileList = crelt('ul', {
+        class: styles.explorerList,
+        style: Object.entries(inlineStyles.list)
+            .map(([k, v]) => `${k}:${v}`)
+            .join(';'),
+    })
 
     debug(
         'Current files:',

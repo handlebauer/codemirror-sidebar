@@ -11,7 +11,7 @@ import {
     sidebarPanel,
     updateSidebarOptionsEffect,
     setActivePanelEffect,
-} from './sidebar'
+} from './sidebar/index'
 import { fileExplorer } from './explorer/index'
 import { javascript } from '@codemirror/lang-javascript' // Or a default language
 import { type Extension } from '@codemirror/state'
