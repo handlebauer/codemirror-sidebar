@@ -14,6 +14,9 @@ export function Editor() {
             backgroundColor: '#2c313a',
             initiallyOpen: true,
             initialFiles: demoFiles,
+            onFileSelect: filename => {
+                console.log('Selected file:', filename)
+            },
         },
         assistant: {
             width: '400px',

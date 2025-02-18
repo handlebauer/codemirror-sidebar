@@ -128,6 +128,28 @@ function Editor() {
 
     return <div ref={ref} style={{ height: '100vh' }} />
 }
+
+// Example with file selection callback
+function EditorWithFileCallback() {
+    const { ref } = useEditor({
+        initialContent: 'Select a file to begin editing',
+        explorer: {
+            initiallyOpen: true,
+            width: '250px',
+            // Simple callback when files are selected
+            onFileSelect: (filename) => {
+                console.log('Selected file:', filename)
+                // You can do anything here:
+                // - Update UI state
+                // - Trigger side effects
+                // - Call APIs
+                // - etc.
+            },
+        },
+    })
+
+    return <div ref={ref} style={{ height: '100vh' }} />
+}
 ```
 
 ### File Explorer Configuration
@@ -157,6 +179,115 @@ import { setApiKeyEffect } from '@repoview/codemirror-extensions'
 // Configure AI assistant
 view.dispatch({
     effects: [setApiKeyEffect.of('your-api-key')],
+})
+```
+
+## Advanced Usage
+
+### Advanced File Explorer Features
+
+```typescript
+import {
+    updateFilesEffect,
+    selectFileEffect,
+    setProjectNameEffect,
+    type File,
+} from '@repoview/codemirror-extensions'
+
+// Update multiple files at once
+view.dispatch({
+    effects: [
+        updateFilesEffect.of([
+            {
+                name: 'src/main.ts',
+                content: 'console.log("Hello")',
+                language: 'typescript', // Optional: explicitly set language
+            },
+            {
+                name: 'src/utils/helpers.ts',
+                content: 'export const add = (a: number, b: number) => a + b',
+            },
+        ]),
+    ],
+})
+
+// Programmatically select a file
+view.dispatch({
+    effects: [selectFileEffect.of('src/main.ts')],
+})
+
+// Set project name in explorer
+view.dispatch({
+    effects: [setProjectNameEffect.of('My Project')],
+})
+
+// Listen for file selection events
+const explorerExtension = explorer({
+    width: '250px',
+    onFileSelect: (filename, view) => {
+        console.log(`Selected file: ${filename}`)
+        // You can access the file's content from the explorer state
+        const state = view.state.field(fileExplorerState)
+        const file = state.files.find(f => f.name === filename)
+        if (file) {
+            console.log('File content:', file.content)
+        }
+    },
+})
+```
+
+### Advanced AI Assistant Features
+
+```typescript
+import {
+    addMessageEffect,
+    updateMessageStatusEffect,
+    selectModelEffect,
+    setApiKeyEffect,
+    toggleSettingsEffect,
+    type Message,
+    type Model
+} from '@repoview/codemirror-extensions'
+
+// Add a new message to the conversation
+view.dispatch({
+    effects: [
+        addMessageEffect.of({
+            role: 'user',
+            content: 'How do I implement a binary search?'
+        })
+    ]
+})
+
+// Update message status (e.g., for streaming responses)
+view.dispatch({
+    effects: [
+        updateMessageStatusEffect.of({
+            messageId: 'msg-123',
+            status: 'streaming',
+            content: 'Here's how you implement...'
+        })
+    ]
+})
+
+// Switch AI models
+view.dispatch({
+    effects: [selectModelEffect.of('gpt-4')]
+})
+
+// Toggle settings panel
+view.dispatch({
+    effects: [toggleSettingsEffect.of(true)]
+})
+
+// Configure assistant with specific model
+const assistantExtension = assistant({
+    width: '400px',
+    model: 'gpt-4',
+    keymap: {
+        mac: 'Cmd-k',
+        win: 'Ctrl-k'
+    }
 })
 ```
 

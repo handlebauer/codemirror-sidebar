@@ -1,5 +1,5 @@
 import { type Extension } from '@codemirror/state'
-import { EditorView } from '@codemirror/view'
+import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { type DockPosition } from '../sidebar'
 import { createSidebar, sidebarPanel, toggleSidebarCommand } from '../sidebar'
 import {
@@ -9,6 +9,7 @@ import {
     // Internal implementation details, not exported to userland
     fileExplorerPlugin,
     languageCompartment,
+    selectFileEffect,
 } from './state'
 
 // Global keymap handler for sidebars
@@ -71,6 +72,33 @@ export interface ExplorerOptions {
      * @default false
      */
     initiallyOpen?: boolean
+    /**
+     * Callback function that is called when a file is selected
+     * @param filename The name/path of the selected file
+     * @param view The current editor view
+     */
+    onFileSelect?: (filename: string, view: EditorView) => void
+}
+
+// Create a ViewPlugin to handle file selection callbacks
+function createFileSelectPlugin(
+    onFileSelect?: (filename: string, view: EditorView) => void,
+) {
+    return ViewPlugin.fromClass(
+        class {
+            update(update: ViewUpdate) {
+                if (!onFileSelect) return
+
+                for (const effect of update.transactions.flatMap(
+                    tr => tr.effects,
+                )) {
+                    if (effect.is(selectFileEffect)) {
+                        onFileSelect(effect.value, update.view)
+                    }
+                }
+            }
+        },
+    )
 }
 
 /**
@@ -84,6 +112,7 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         backgroundColor = '#2c313a',
         keymap,
         initiallyOpen = false,
+        onFileSelect,
     } = options
 
     const sidebarOptions = {
@@ -122,6 +151,7 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         fileExplorerPlugin,
         sidebarPanel.of(fileExplorerPanelSpec),
         languageCompartment.of([]), // Initialize language compartment with empty configuration
+        onFileSelect ? createFileSelectPlugin(onFileSelect) : [],
     ]
 }
 
