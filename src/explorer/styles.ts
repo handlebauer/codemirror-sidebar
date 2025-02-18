@@ -46,7 +46,7 @@ if (typeof document !== 'undefined') {
 }
 
 export const inlineStyles = {
-    header: 'user-select: none; text-transform: uppercase; font-size: 14px; font-weight: 800; margin: 0; padding: 4px 8px 3px; letter-spacing: 0.5px; color: #cdc8d0;',
+    header: 'user-select: none; text-transform: uppercase; font-size: 14px; font-weight: 800; margin: 0; padding: 4px 8px 3px; letter-spacing: 0.5px; color: #e1e1e3;',
     caret: 'display: flex; align-items: center; justify-content: center; width: 8px; height: 16px; line-height: 16px; text-align: center; user-select: none; font-size: 13px; opacity: 0.6; transform: rotate(0deg); transition: transform 0.15s ease;',
     caretExpanded: 'transform: rotate(90deg)',
     directorySpan:

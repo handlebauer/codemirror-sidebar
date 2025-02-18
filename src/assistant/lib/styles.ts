@@ -32,7 +32,7 @@ export const getTabStyles = (isActive: boolean) => ({
     fontWeight: '500',
     cursor: 'pointer',
     borderRadius: '4px 4px 0 0',
-    color: 'var(--cm-text-color, #cdc8d0)',
+    color: 'var(--cm-text-color, #e1e1e3)',
     opacity: isActive ? '1' : '0.7',
     transition: 'opacity 0.2s',
     marginBottom: '-1px',
@@ -51,14 +51,14 @@ export const modelSelectStyles = {
     background: 'transparent',
     border: 'transparent',
     borderRadius: '4px',
-    color: 'var(--cm-text-color, #cdc8d0)',
+    color: 'var(--cm-text-color, #e1e1e3)',
     padding: '4px 24px 4px 8px',
     fontSize: '13px',
     cursor: 'pointer',
     outline: 'none',
     appearance: 'none',
     backgroundImage:
-        'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20fill%3D%22%23cdc8d0%22%20d%3D%22M7%2010L3.5%206h7L7%2010z%22%2F%3E%3C%2Fsvg%3E")',
+        'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20fill%3D%22%23e1e1e3%22%20d%3D%22M7%2010L3.5%206h7L7%2010z%22%2F%3E%3C%2Fsvg%3E")',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right 4px center',
     textAlign: 'right',
@@ -73,7 +73,7 @@ export const settingsButtonStyles = {
     cursor: 'pointer',
     opacity: '0.7',
     transition: 'opacity 0.2s',
-    color: 'var(--cm-text-color, #cdc8d0)',
+    color: 'var(--cm-text-color, #e1e1e3)',
     display: 'flex',
     alignItems: 'center',
 }
@@ -278,51 +278,62 @@ export const settingsPanelContainerStyles = {
 export const settingsHeaderStyles = {
     fontSize: '13px',
     fontWeight: '500',
-    color: 'var(--cm-text-color, #cdc8d0)',
+    color: 'var(--cm-text-color, #e1e1e3)',
     padding: '6px 10px',
     background: 'var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
     borderRadius: '4px 4px 0 0',
     marginBottom: '-1px',
     borderBottom: '1px solid var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
-    flex: '1',
+    display: 'inline-block',
 }
 
 export const providerHeaderStyles = {
     fontSize: '13px',
-    fontWeight: '500',
-    color: 'var(--cm-text-color, #cdc8d0)',
-    padding: '6px 10px',
+    fontWeight: '600',
+    color: 'var(--cm-text-color, #e1e1e3)',
+    padding: '8px 12px',
     background: 'none',
     borderRadius: '4px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    boxSizing: 'border-box',
 }
 
 export const settingsDescriptionStyles = {
     fontSize: '12px',
     marginTop: '12px',
     marginBottom: '16px',
-    color: 'var(--cm-text-color, #cdc8d0)',
+    color: 'var(--cm-text-color, #e1e1e3)',
     opacity: '0.7',
 }
 
 export const settingsInputsContainerStyles = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: '12px',
+    background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.02))',
+    padding: '12px',
+    borderRadius: '8px',
+    border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.08))',
 }
 
 export const getSettingsInputStyles = (hasApiKey: boolean) => ({
     display: hasApiKey ? 'none' : 'flex',
     gap: '8px',
+    padding: '8px',
+    borderRadius: '6px',
 })
 
 export const settingsInputFieldStyles = {
     flex: '1',
-    background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.05))',
+    background: 'var(--cm-input-bg, rgba(0, 0, 0, 0.2))',
     border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
     borderRadius: '4px',
     padding: '8px 12px',
     fontSize: '13px',
-    color: 'var(--cm-text-color, #cdc8d0)',
+    color: 'var(--cm-text-color, #e1e1e3)',
     outline: 'none',
     transition: 'all 0.2s ease',
     fontFamily: 'monospace',
@@ -330,13 +341,13 @@ export const settingsInputFieldStyles = {
 
 export const settingsMessageContainerStyles = (hasApiKey: boolean) => ({
     fontSize: '12px',
-    color: 'var(--cm-text-color, #cdc8d0)',
-    opacity: '0.7',
-    padding: '6px 12px',
+    color: 'var(--cm-text-color, #e1e1e3)',
+    opacity: '0.8',
+    padding: '8px 12px',
     display: hasApiKey ? 'flex' : 'none',
     alignItems: 'center',
-    background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.05))',
-    borderRadius: '4px',
+    background: 'var(--cm-input-bg, rgba(0, 0, 0, 0.2))',
+    borderRadius: '6px',
     height: '33px',
     boxSizing: 'border-box',
 })

@@ -362,6 +362,8 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         Object.assign(resetButton.style, {
             ...styles.settingsButtonStyles,
             display: state.apiKeys[model.provider] ? 'block' : 'none',
+            whiteSpace: 'nowrap',
+            minWidth: 'fit-content',
         })
 
         resetButton.addEventListener('mouseover', () => {
