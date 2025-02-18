@@ -37,10 +37,10 @@ A powerful set of sidebar extensions for CodeMirror 6 that adds file explorer an
 ## Installation
 
 ```bash
-npm install @handlebauer/codemirror-sidebar
-yarn add @handlebauer/codemirror-sidebar
-pnpm add @handlebauer/codemirror-sidebar
-bun add @handlebauer/codemirror-sidebar
+npm install @repoview/codemirror-extensions
+yarn add @repoview/codemirror-extensions
+pnpm add @repoview/codemirror-extensions
+bun add @repoview/codemirror-extensions
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ import { EditorView } from '@codemirror/view'
 import {
     sidebarExtension,
     createAISidebar,
-} from '@handlebauer/codemirror-sidebar'
+} from '@repoview/codemirror-extensions'
 
 // Create editor with both sidebars
 const state = EditorState.create({
@@ -101,7 +101,7 @@ const view = new EditorView({
 For React applications, we provide a convenient `useEditor` hook that simplifies the integration:
 
 ```typescript
-import { useEditor } from '@handlebauer/codemirror-sidebar'
+import { useEditor } from '@repoview/codemirror-extensions'
 
 function Editor() {
     const { ref, view } = useEditor({
@@ -133,7 +133,7 @@ function Editor() {
 ### File Explorer Configuration
 
 ```typescript
-import { updateFilesEffect } from '@handlebauer/codemirror-sidebar'
+import { updateFilesEffect } from '@repoview/codemirror-extensions'
 
 // Update files in the explorer
 view.dispatch({
@@ -152,7 +152,7 @@ view.dispatch({
 ### AI Assistant Configuration
 
 ```typescript
-import { setApiKeyEffect } from '@handlebauer/codemirror-sidebar'
+import { setApiKeyEffect } from '@repoview/codemirror-extensions'
 
 // Configure AI assistant
 view.dispatch({
