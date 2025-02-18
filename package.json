@@ -18,7 +18,7 @@
         "format": "prettier --write .",
         "clean": "rm -rf dist",
         "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
-        "publish:pkg": "bun run build && bunx bumpp && bunx publish",
+        "publish:pkg": "bun run build && bun publish --access public",
         "publish:dry": "bun run build && bun publish --dry-run"
     },
     "peerDependencies": {
