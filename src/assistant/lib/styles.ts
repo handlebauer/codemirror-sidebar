@@ -210,20 +210,23 @@ export const codeBlockHeaderStyles = {
     gap: '6px',
     userSelect: 'none',
     position: 'relative',
+    height: '32px',
+    boxSizing: 'border-box',
 }
 
 export const copyButtonStyles = {
-    marginLeft: 'auto',
     background: 'none',
     border: 'none',
     padding: '4px',
     cursor: 'pointer',
-    color: 'var(--cm-text-secondary, rgba(255, 255, 255, 0.6))',
-    opacity: '0.7',
+    color: 'inherit',
+    opacity: '0.5',
     transition: 'opacity 0.2s',
+    marginLeft: 'auto',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    height: '16px',
 }
 
 export const dotStyles = {
@@ -366,8 +369,9 @@ export const loadingDotsStyles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '3px',
-    marginLeft: '8px',
+    marginLeft: 'auto',
     opacity: '0.5',
+    height: '16px',
 }
 
 export const loadingDotBaseStyles = {
