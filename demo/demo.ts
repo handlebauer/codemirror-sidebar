@@ -3,7 +3,7 @@ import { demoFiles, fallbackFiles, PROJECT_NAME } from './data'
 import { createToolbar } from './components/toolbar'
 import { createEditorExtensions } from './config/editor'
 import { initializeEditorContent } from './utils/files'
-import { setProjectNameEffect } from '../src/explorer'
+import { setProjectNameEffect } from '../src/explorer/index'
 
 // Initialize the demo
 async function initializeDemo() {

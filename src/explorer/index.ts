@@ -1,11 +1,12 @@
 import { StateField, StateEffect, Compartment } from '@codemirror/state'
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
-import { type SidebarPanelSpec, sidebarPanel } from './sidebar'
+import { type SidebarPanelSpec, sidebarPanel } from '../sidebar'
 import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { markdown } from '@codemirror/lang-markdown'
 import { json } from '@codemirror/lang-json'
 import crelt from 'crelt'
+import { styles, inlineStyles } from './styles'
 
 // Add debug logging helper
 const debug = (...args: unknown[]) => console.log('[Explorer]', ...args)
@@ -73,14 +74,14 @@ const fileExplorerPanelSpec: SidebarPanelSpec = {
     id: 'file-explorer',
     create(view: EditorView): HTMLElement {
         debug('Creating file explorer panel')
-        const dom = crelt('div', { class: 'cm-sidebar-explorer-content' })
+        const dom = crelt('div', { class: styles.explorerContent })
         renderFileExplorer(dom, view)
         debug('File explorer panel created')
         return dom
     },
     update(view: EditorView): void {
         debug('Updating file explorer panel')
-        const dom = view.dom.querySelector('.cm-sidebar-explorer-content')
+        const dom = view.dom.querySelector(`.${styles.explorerContent}`)
         if (dom) {
             renderFileExplorer(dom as HTMLElement, view)
             debug('File explorer panel updated')
@@ -180,24 +181,24 @@ function renderFileNode(
         const caretSpan = crelt(
             'span',
             {
-                class: `cm-directory-caret${isExpanded ? ' expanded' : ''}`,
-                style: `display: flex; align-items: center; justify-content: center; width: 8px; height: 16px; line-height: 16px; text-align: center; user-select: none; font-size: 12px; opacity: 0.6; transform: rotate(${isExpanded ? '90deg' : '0deg'}); transition: transform 0.15s ease;`,
+                class: `${styles.directoryCaret}${isExpanded ? ` ${styles.directoryCaretExpanded}` : ''}`,
+                style: `${inlineStyles.caret}${isExpanded ? `; ${inlineStyles.caretExpanded}` : ''}`,
             },
             '›',
         )
         const dirSpan = crelt(
             'span',
             {
-                class: 'cm-file-explorer-directory',
-                style: 'margin-left: 4px; user-select: none; display: flex; align-items: center; font-size: 13px; font-weight: 500;',
+                class: styles.explorerDirectory,
+                style: inlineStyles.directorySpan,
             },
             node.name,
         )
         const dirItem = crelt(
             'li',
             {
-                class: 'cm-file-explorer-item cm-file-explorer-directory-item',
-                style: `padding: 1.5px 0; padding-left: ${indentation}px; display: flex; align-items: center;`,
+                class: `${styles.explorerItem} ${styles.explorerDirectoryItem}`,
+                style: `${inlineStyles.directoryItem}; padding-left: ${indentation}px`,
                 onclick: () => {
                     view.dispatch({
                         effects: toggleDirEffect.of(node.path),
@@ -220,8 +221,8 @@ function renderFileNode(
         const fileSpan = crelt(
             'span',
             {
-                class: 'cm-file-explorer-file',
-                style: 'user-select: none; margin-left: 12px; font-size: 13px; font-weight: 500;', // 8px (caret) + 4px (matching directory margin)
+                class: styles.explorerFile,
+                style: inlineStyles.fileSpan,
             },
             node.name,
         )
@@ -229,12 +230,12 @@ function renderFileNode(
             'li',
             {
                 'data-file': node.path,
-                class: `cm-file-explorer-item${
+                class: `${styles.explorerItem}${
                     node.path === selectedFile
-                        ? ' cm-file-explorer-item-selected'
+                        ? ` ${styles.explorerItemSelected}`
                         : ''
                 }`,
-                style: `padding: 3px 0; padding-left: ${indentation}px`,
+                style: `${inlineStyles.fileItem}; padding-left: ${indentation}px`,
                 onclick: () =>
                     handleFileClick(
                         { name: node.path, content: node.content! },
@@ -253,11 +254,11 @@ function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     const header = crelt(
         'h3',
         {
-            style: 'user-select: none; text-transform: uppercase; font-size: 13px; font-weight: 800; margin: 0; padding: 4px 8px 3px; letter-spacing: 0.5px; color: #cdc8d0;',
+            style: inlineStyles.header,
         },
         explorerState.projectName || 'Files',
     )
-    const fileList = crelt('ul', { class: 'cm-file-explorer-list' })
+    const fileList = crelt('ul', { class: styles.explorerList })
 
     debug(
         'Current files:',
@@ -334,7 +335,7 @@ const fileExplorerPlugin = ViewPlugin.fromClass(
                 update.startState.field(fileExplorerState)
             ) {
                 const dom = update.view.dom.querySelector(
-                    '.cm-sidebar-explorer-content',
+                    `.${styles.explorerContent}`,
                 )
                 if (dom) {
                     renderFileExplorer(dom as HTMLElement, update.view)

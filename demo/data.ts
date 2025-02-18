@@ -1,4 +1,4 @@
-import { type File } from '../src/explorer'
+import { type File } from '../src/explorer/index'
 
 // Extract project name from Gist URL
 const GIST_URL =

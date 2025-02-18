@@ -1,7 +1,7 @@
 import { EditorView } from 'codemirror'
 import { toggleSidebarEffect } from '../../src/index'
-import { updateFilesEffect } from '../../src/explorer'
-import { type File } from '../../src/explorer'
+import { updateFilesEffect } from '../../src/explorer/index'
+import { type File } from '../../src/explorer/index'
 
 export async function initializeEditorContent(
     view: EditorView,

@@ -6,6 +6,7 @@ import {
     type Extension,
 } from '@codemirror/state'
 import crelt from 'crelt'
+import { styles, inlineStyles, defaultSidebarOptions } from './styles'
 
 // -- TYPES ---------------------------------------------------------------
 interface SidebarPanelSpec {
@@ -29,13 +30,6 @@ interface SidebarState {
     visible: boolean
     options: SidebarOptions
     activePanelId: string | null
-}
-
-// -- CONSTANTS -----------------------------------------------------------
-const defaultSidebarOptions: Omit<SidebarOptions, 'id'> = {
-    width: '250px',
-    backgroundColor: '#21222c',
-    overlay: true, // Default to overlay behavior
 }
 
 // -- FACETS ------------------------------------------------------------
@@ -131,7 +125,7 @@ const createSidebarPlugin = (id: string) =>
                 debug('Initializing sidebar plugin:', id)
                 this.dom = this.createSidebarDOM()
                 this.panelContainer = crelt('div', {
-                    class: 'cm-sidebar-panel-container',
+                    class: styles.panelContainer,
                 })
                 this.resizeHandle = this.createResizeHandle()
                 this.dom.appendChild(this.resizeHandle)
@@ -176,7 +170,7 @@ const createSidebarPlugin = (id: string) =>
 
             private createSidebarDOM(): HTMLElement {
                 return crelt('div', {
-                    class: 'cm-sidebar',
+                    class: styles.sidebar,
                     'data-sidebar-id': id,
                 })
             }
@@ -187,18 +181,11 @@ const createSidebarPlugin = (id: string) =>
 
             private createResizeHandle(): HTMLElement {
                 const handle = crelt('div', {
-                    class: 'cm-sidebar-resize-handle',
+                    class: styles.resizeHandle,
                 })
 
                 // Set up resize handle styles
-                Object.assign(handle.style, {
-                    position: 'absolute',
-                    top: '0',
-                    width: '4px',
-                    height: '100%',
-                    cursor: 'col-resize',
-                    zIndex: '20',
-                })
+                Object.assign(handle.style, inlineStyles.resizeHandle)
 
                 const startDragging = (e: MouseEvent) => {
                     e.preventDefault()
@@ -209,8 +196,7 @@ const createSidebarPlugin = (id: string) =>
                     // Add event listeners for dragging
                     document.addEventListener('mousemove', onDrag)
                     document.addEventListener('mouseup', stopDragging)
-                    document.body.style.cursor = 'col-resize'
-                    document.body.style.userSelect = 'none'
+                    Object.assign(document.body.style, inlineStyles.dragging)
                 }
 
                 const onDrag = (e: MouseEvent) => {
@@ -266,28 +252,18 @@ const createSidebarPlugin = (id: string) =>
                 const editor = this.dom.parentElement
 
                 if (editor) {
-                    if (!overlay) {
-                        Object.assign(editor.style, {
-                            display: 'flex',
-                            flexDirection: 'row',
-                            position: 'relative',
-                        })
-                    } else {
-                        Object.assign(editor.style, {
-                            display: 'block',
-                            position: 'relative',
-                        })
-                    }
+                    Object.assign(
+                        editor.style,
+                        overlay
+                            ? inlineStyles.editor.overlay
+                            : inlineStyles.editor.nonOverlay,
+                    )
                 }
 
-                // Base styles that apply regardless of visibility
+                // Apply base sidebar styles
                 Object.assign(this.dom.style, {
-                    height: '100%',
+                    ...inlineStyles.sidebar.base,
                     background: backgroundColor,
-                    flexShrink: '0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'none', // Remove transition for smoother resizing
                 })
 
                 // Position the resize handle based on dock position
@@ -297,21 +273,17 @@ const createSidebarPlugin = (id: string) =>
 
                 if (!overlay) {
                     Object.assign(this.dom.style, {
-                        position: 'relative',
+                        ...inlineStyles.sidebar.nonOverlay,
                         order: dock === 'left' ? -1 : 1,
-                        zIndex: '1',
                         width: visible ? width : '0',
-                        overflow: 'hidden',
                         opacity: visible ? '1' : '0',
                     })
                 } else {
                     Object.assign(this.dom.style, {
-                        position: 'absolute',
+                        ...inlineStyles.sidebar.overlay,
                         [dock === 'left' ? 'left' : 'right']: visible
                             ? '0'
                             : `-${width}`,
-                        top: '0',
-                        zIndex: '10',
                         width: width,
                     })
                 }
@@ -321,11 +293,10 @@ const createSidebarPlugin = (id: string) =>
                         '.cm-scroller',
                     ) as HTMLElement
                     if (editorContent) {
-                        Object.assign(editorContent.style, {
-                            flex: '1',
-                            width: 'auto',
-                            position: 'relative',
-                        })
+                        Object.assign(
+                            editorContent.style,
+                            inlineStyles.editorContent,
+                        )
                     }
                 }
             }

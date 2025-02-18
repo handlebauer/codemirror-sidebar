@@ -12,7 +12,7 @@ import {
     updateSidebarOptionsEffect,
     setActivePanelEffect,
 } from './sidebar'
-import { fileExplorer } from './explorer'
+import { fileExplorer } from './explorer/index'
 import { javascript } from '@codemirror/lang-javascript' // Or a default language
 import { type Extension } from '@codemirror/state'
 import { assistant } from './assistant'
