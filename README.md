@@ -69,6 +69,7 @@ const state = EditorState.create({
                 overlay: false,
                 width: '250px',
                 backgroundColor: '#2c313a',
+                initiallyOpen: false,
             },
             toggleKeymaps: {
                 mac: 'Cmd-b',
@@ -80,6 +81,7 @@ const state = EditorState.create({
         ...createAISidebar({
             width: '400px',
             backgroundColor: '#2c313a',
+            initiallyOpen: true,
             toggleKeymaps: {
                 mac: 'Cmd-r',
                 win: 'Ctrl-r',
@@ -92,6 +94,40 @@ const view = new EditorView({
     state,
     parent: document.querySelector('#editor'),
 })
+```
+
+### React Integration
+
+For React applications, we provide a convenient `useEditor` hook that simplifies the integration:
+
+```typescript
+import { useEditor } from '@handlebauer/codemirror-sidebar'
+
+function Editor() {
+    const { ref, view } = useEditor({
+        initialContent: 'Your initial content here',
+        // Configure file explorer
+        explorer: {
+            initiallyOpen: true,
+            width: '250px',
+            initialFiles: [
+                {
+                    name: 'example.ts',
+                    content: 'console.log("Hello World")',
+                },
+            ],
+        },
+        // Configure AI assistant
+        assistant: {
+            initiallyOpen: false,
+            width: '400px',
+        },
+        // Add any additional CodeMirror extensions
+        extensions: [],
+    })
+
+    return <div ref={ref} style={{ height: '100vh' }} />
+}
 ```
 
 ### File Explorer Configuration
@@ -135,6 +171,7 @@ interface SidebarOptions {
     width?: string
     backgroundColor?: string
     overlay?: boolean
+    initiallyOpen?: boolean
 }
 ```
 
@@ -153,6 +190,7 @@ interface File {
 interface AISidebarOptions {
     width?: string
     backgroundColor?: string
+    initiallyOpen?: boolean
     toggleKeymaps?: {
         mac?: string
         win?: string
