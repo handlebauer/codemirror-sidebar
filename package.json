@@ -1,10 +1,13 @@
 {
     "name": "@hbauer/codemirror-sidebar",
     "version": "0.1.2",
+    "type": "module",
     "main": "dist/index.js",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",
-    "type": "module",
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "dev:vanilla": "vite examples/vanilla",
         "dev:react": "cd examples/react && bun run dev",
@@ -15,7 +18,8 @@
         "format": "prettier --write .",
         "clean": "rm -rf dist",
         "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
-        "bump": "bunx bumpp"
+        "publish:pkg": "bun run build && bunx bumpp && bunx publish",
+        "publish:dry": "bun run build && bun publish --dry-run"
     },
     "peerDependencies": {
         "typescript": "^5.0.0"

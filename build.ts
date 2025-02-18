@@ -1,5 +1,5 @@
 import { $ } from 'bun'
-import { config } from '~/config'
+import { config } from './src/config'
 
 await Bun.build({
     entrypoints: ['./src/index.ts'],

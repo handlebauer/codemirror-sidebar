@@ -4,11 +4,19 @@ import eslintPluginPrettier from 'eslint-plugin-prettier'
 import prettierConfig from 'eslint-config-prettier'
 
 export default [
+    {
+        ignores: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/examples/**',
+            '**/.next/**',
+            '**/*.d.ts',
+        ],
+    },
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     {
         files: ['**/*.{js,mjs,cjs,ts,tsx}'],
-        ignores: ['node_modules/**', 'dist/**'],
         plugins: {
             '@typescript-eslint': tseslint.plugin,
             prettier: eslintPluginPrettier,
