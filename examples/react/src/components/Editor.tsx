@@ -6,11 +6,9 @@ import { EditorView } from '@codemirror/view'
 import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { basicSetup } from 'codemirror'
-import {
-    sidebarExtension,
-    createAISidebar,
-    toggleSidebarEffect,
-} from '../../../../src'
+import { explorer, updateFilesEffect } from '../../../../src/explorer'
+import { assistant } from '../../../../src/assistant'
+import { demoFiles } from './data'
 
 const useEditor = () => {
     const editorRef = useRef<HTMLDivElement>(null)
@@ -20,31 +18,23 @@ const useEditor = () => {
         if (!editorRef.current) return
 
         const state = EditorState.create({
-            doc: 'console.log("Hello from CodeMirror!")',
+            doc: 'Select a file from the explorer to begin editing',
             extensions: [
                 basicSetup,
                 javascript(),
                 oneDark,
-                ...sidebarExtension({
-                    sidebarOptions: {
-                        id: 'file-explorer',
-                        dock: 'left',
-                        overlay: false,
-                        width: '250px',
-                        backgroundColor: '#2c313a',
-                    },
-                    toggleKeymaps: {
-                        mac: 'Cmd-b',
-                        win: 'Ctrl-b',
-                    },
+                explorer({
+                    dock: 'left',
+                    width: '250px',
+                    keymap: { mac: 'Cmd-b', win: 'Ctrl-b' },
+                    overlay: false,
+                    backgroundColor: '#2c313a',
                 }),
-                ...createAISidebar({
+                assistant({
                     width: '400px',
                     backgroundColor: '#2c313a',
-                    toggleKeymaps: {
-                        mac: 'Cmd-r',
-                        win: 'Ctrl-r',
-                    },
+                    keymap: { mac: 'Cmd-r', win: 'Ctrl-r' },
+                    model: 'gpt-4',
                 }),
                 EditorView.theme({
                     '&': { height: '100vh' },
@@ -58,18 +48,16 @@ const useEditor = () => {
             parent: editorRef.current,
         })
 
-        // Show file explorer by default
+        // Initialize with demo files
         view.dispatch({
-            effects: toggleSidebarEffect.of({
-                id: 'file-explorer',
-                visible: true,
-            }),
+            effects: updateFilesEffect.of(demoFiles),
         })
 
         viewRef.current = view
 
         return () => {
             view.destroy()
+            viewRef.current = null
         }
     }, [])
 

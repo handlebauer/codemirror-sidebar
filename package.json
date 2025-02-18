@@ -5,6 +5,20 @@
     "main": "dist/index.js",
     "module": "dist/index.js",
     "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./explorer": {
+            "types": "./dist/explorer/index.d.ts",
+            "import": "./dist/explorer/index.js"
+        },
+        "./assistant": {
+            "types": "./dist/assistant/index.d.ts",
+            "import": "./dist/assistant/index.js"
+        }
+    },
     "files": [
         "dist"
     ],

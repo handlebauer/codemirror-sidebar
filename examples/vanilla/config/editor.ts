@@ -1,32 +1,27 @@
 import { type Extension } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
-import { sidebarExtension, createAISidebar } from '../../../src'
+import { explorer } from '../../../src/explorer'
+import { assistant } from '../../../src/assistant'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { javascript } from '@codemirror/lang-javascript'
 
 export function createEditorExtensions(): Extension[] {
     return [
         basicSetup,
         oneDark,
-        ...sidebarExtension({
-            sidebarOptions: {
-                id: 'file-explorer',
-                dock: 'left',
-                overlay: false,
-                width: '250px',
-                backgroundColor: '#2c313a',
-            },
-            toggleKeymaps: {
-                mac: 'Cmd-b',
-                win: 'Ctrl-b',
-            },
+        javascript(),
+        explorer({
+            dock: 'left',
+            width: '250px',
+            keymap: { mac: 'Cmd-b', win: 'Ctrl-b' },
+            overlay: false,
+            backgroundColor: '#2c313a',
         }),
-        ...createAISidebar({
+        assistant({
             width: '400px',
             backgroundColor: '#2c313a',
-            toggleKeymaps: {
-                mac: 'Cmd-r',
-                win: 'Ctrl-r',
-            },
+            keymap: { mac: 'Cmd-r', win: 'Ctrl-r' },
+            model: 'gpt-4',
         }),
     ]
 }
