@@ -1,27 +1,26 @@
 import { type Extension } from '@codemirror/state'
 import { basicSetup } from 'codemirror'
+import { sidebarExtension, createAISidebar } from '../../../src'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { sidebarExtension, createAISidebar } from '../../src/index'
 
 export function createEditorExtensions(): Extension[] {
     return [
         basicSetup,
-        // File explorer sidebar on the left
-        sidebarExtension({
+        oneDark,
+        ...sidebarExtension({
             sidebarOptions: {
+                id: 'file-explorer',
                 dock: 'left',
                 overlay: false,
                 width: '250px',
                 backgroundColor: '#2c313a',
-                id: 'file-explorer',
             },
             toggleKeymaps: {
                 mac: 'Cmd-b',
                 win: 'Ctrl-b',
             },
         }),
-        // AI assistant sidebar on the right
-        createAISidebar({
+        ...createAISidebar({
             width: '400px',
             backgroundColor: '#2c313a',
             toggleKeymaps: {
@@ -29,6 +28,5 @@ export function createEditorExtensions(): Extension[] {
                 win: 'Ctrl-r',
             },
         }),
-        oneDark,
     ]
 }

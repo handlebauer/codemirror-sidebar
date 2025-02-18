@@ -6,7 +6,9 @@
     "types": "dist/index.d.ts",
     "type": "module",
     "scripts": {
-        "dev": "vite",
+        "dev:vanilla": "vite examples/vanilla",
+        "dev:react": "cd examples/react && bun run dev",
+        "dev": "bun run dev:vanilla",
         "env": "bun --print process.env",
         "prepare": "husky",
         "lint": "eslint .",

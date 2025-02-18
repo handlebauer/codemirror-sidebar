@@ -3,14 +3,14 @@ import { defineConfig } from 'vite'
 export default defineConfig({
     server: {
         port: 3000,
-        open: '/demo/',
+        open: '/examples/vanilla/',
     },
     build: {
         sourcemap: true,
         rollupOptions: {
             input: {
                 index: 'index.html',
-                demo: 'demo/index.html',
+                vanilla: 'examples/vanilla/index.html',
             },
         },
     },
