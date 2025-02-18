@@ -14,7 +14,6 @@ async function initializeDemo() {
 
     // Create editor
     const view = new EditorView({
-        doc: 'Loading template...',
         extensions: createEditorExtensions(),
         parent: demoContainer,
     })

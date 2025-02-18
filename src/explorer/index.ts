@@ -50,7 +50,7 @@ const fileExplorerState = StateField.define<FileExplorerState>({
                 return {
                     ...value,
                     files: effect.value,
-                    selectedFile: effect.value[0]?.name || null,
+                    selectedFile: null, // Don't select any file by default
                 }
             } else if (effect.is(toggleDirEffect)) {
                 // Toggle directory expanded state

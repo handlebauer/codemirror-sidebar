@@ -18,11 +18,6 @@ export async function initializeEditorContent(
                 }),
                 updateFilesEffect.of(contentFiles),
             ],
-            changes: {
-                from: 0,
-                to: view.state.doc.length,
-                insert: contentFiles[0].content,
-            },
         })
     } catch (error) {
         console.error('Error initializing editor content:', error)
@@ -38,7 +33,7 @@ export async function initializeEditorContent(
             changes: {
                 from: 0,
                 to: view.state.doc.length,
-                insert: fallbackFiles[0].content,
+                insert: 'Select a file from the explorer to begin editing',
             },
         })
     }
