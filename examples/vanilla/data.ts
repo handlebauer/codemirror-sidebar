@@ -1,4 +1,5 @@
 import { type File } from '../../src/explorer'
+import { db } from './utils/db'
 
 // GitHub repository information
 const REPO_OWNER = 'handlebauer'
@@ -39,6 +40,13 @@ async function fetchFileContent(
 
 // Function to fetch repository content
 async function fetchRepoContent(): Promise<File[]> {
+    // First try to get from database
+    const cached = await db.getRepository(REPO_OWNER, REPO_NAME, REPO_BRANCH)
+    if (cached) {
+        console.log('Using cached repository data')
+        return cached.files
+    }
+
     const files: File[] = []
 
     try {
@@ -63,6 +71,9 @@ async function fetchRepoContent(): Promise<File[]> {
                 content,
             })
         }
+
+        // Save to database
+        await db.saveRepository(REPO_OWNER, REPO_NAME, REPO_BRANCH, files)
     } catch (error) {
         console.error('Error fetching repository content:', error)
         return fallbackFiles
