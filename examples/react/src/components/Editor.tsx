@@ -12,6 +12,7 @@ export function Editor() {
             keymap: { mac: 'Cmd-b', win: 'Ctrl-b' },
             overlay: false,
             backgroundColor: '#2c313a',
+            initiallyOpen: true,
             initialFiles: demoFiles,
         },
         assistant: {

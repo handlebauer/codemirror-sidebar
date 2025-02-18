@@ -346,17 +346,14 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         Object.assign(container.style, {
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px',
-            padding: '12px 12px 6px 12px',
-            background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.03))',
-            borderRadius: '4px',
+            gap: '2px',
         })
-
-        const headerContainer = crelt('div')
-        Object.assign(headerContainer.style, styles.tabsContainerStyles)
 
         const label = crelt('label', {}, formatProviderName(model.provider))
         Object.assign(label.style, styles.providerHeaderStyles)
+
+        const contentContainer = crelt('div')
+        Object.assign(contentContainer.style, styles.providerContentStyles)
 
         const resetButton = crelt('button', {}, 'Reset key')
         Object.assign(resetButton.style, {
@@ -384,8 +381,7 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
             })
         })
 
-        headerContainer.appendChild(label)
-        headerContainer.appendChild(resetButton)
+        label.appendChild(resetButton)
 
         const messageContainer = crelt('div')
         Object.assign(
@@ -457,9 +453,11 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         })
 
         inputGroup.appendChild(input)
-        container.appendChild(headerContainer)
-        container.appendChild(messageContainer)
-        container.appendChild(inputGroup)
+        contentContainer.appendChild(messageContainer)
+        contentContainer.appendChild(inputGroup)
+
+        container.appendChild(label)
+        container.appendChild(contentContainer)
         inputsContainer.appendChild(container)
     })
 

@@ -19,8 +19,8 @@ export const inlineStyles = {
             position: 'relative',
         },
         nonOverlay: {
-            display: 'flex',
-            flexDirection: 'row',
+            display: 'flex !important',
+            flexDirection: 'row !important',
             position: 'relative',
         },
     },
@@ -31,6 +31,7 @@ export const inlineStyles = {
             display: 'flex',
             flexDirection: 'column',
             transition: 'none', // Remove transition for smoother resizing
+            minWidth: '0', // Important for flex layout
         },
         overlay: {
             position: 'absolute',
@@ -41,6 +42,8 @@ export const inlineStyles = {
             position: 'relative',
             zIndex: '1',
             overflow: 'hidden',
+            flexShrink: '0',
+            flexBasis: 'auto',
         },
     },
     resizeHandle: {
@@ -52,9 +55,11 @@ export const inlineStyles = {
         zIndex: '20',
     },
     editorContent: {
-        flex: '1',
-        width: 'auto',
+        flex: '1 1 auto !important',
+        width: 'auto !important',
         position: 'relative',
+        minWidth: '0 !important', // Important for flex layout
+        height: '100% !important',
     },
     dragging: {
         cursor: 'col-resize',

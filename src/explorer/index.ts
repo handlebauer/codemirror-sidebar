@@ -66,6 +66,11 @@ export interface ExplorerOptions {
      * @default '#2c313a'
      */
     backgroundColor?: string
+    /**
+     * Whether the explorer should be open by default
+     * @default false
+     */
+    initiallyOpen?: boolean
 }
 
 /**
@@ -78,6 +83,7 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         overlay = false,
         backgroundColor = '#2c313a',
         keymap,
+        initiallyOpen = false,
     } = options
 
     const sidebarOptions = {
@@ -86,6 +92,8 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         width,
         overlay,
         backgroundColor,
+        initiallyOpen,
+        initialPanelId: 'file-explorer',
     }
 
     // Register keymap handlers if configured

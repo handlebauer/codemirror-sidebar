@@ -13,7 +13,7 @@ export const tabsContainerStyles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: '32px',
+    height: '37px',
 }
 
 export const tabsGroupStyles = {
@@ -210,7 +210,7 @@ export const codeBlockHeaderStyles = {
     gap: '6px',
     userSelect: 'none',
     position: 'relative',
-    height: '32px',
+    height: '37px',
     boxSizing: 'border-box',
 }
 
@@ -265,16 +265,6 @@ export const textContainerStyles = {
     minHeight: '20px',
 }
 
-// Settings panel styles
-export const settingsPanelContainerStyles = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    overflow: 'hidden',
-    boxSizing: 'border-box',
-    padding: '12px',
-}
-
 export const settingsHeaderStyles = {
     fontSize: '13px',
     fontWeight: '500',
@@ -291,14 +281,22 @@ export const providerHeaderStyles = {
     fontSize: '13px',
     fontWeight: '600',
     color: 'var(--cm-text-color, #e1e1e3)',
-    padding: '8px 12px',
-    background: 'none',
-    borderRadius: '4px',
+    padding: '0 0 8px 0',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
     boxSizing: 'border-box',
+    height: '21px',
+}
+
+export const providerContentStyles = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+    padding: '2px',
+    background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.03))',
+    borderRadius: '4px',
 }
 
 export const settingsDescriptionStyles = {
@@ -312,11 +310,7 @@ export const settingsDescriptionStyles = {
 export const settingsInputsContainerStyles = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
-    background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.02))',
-    padding: '12px',
-    borderRadius: '8px',
-    border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.08))',
+    gap: '24px',
 }
 
 export const getSettingsInputStyles = (hasApiKey: boolean) => ({
@@ -324,6 +318,8 @@ export const getSettingsInputStyles = (hasApiKey: boolean) => ({
     gap: '8px',
     padding: '8px',
     borderRadius: '6px',
+    height: '49px',
+    boxSizing: 'border-box',
 })
 
 export const settingsInputFieldStyles = {
@@ -337,18 +333,19 @@ export const settingsInputFieldStyles = {
     outline: 'none',
     transition: 'all 0.2s ease',
     fontFamily: 'monospace',
+    boxSizing: 'border-box',
 }
 
 export const settingsMessageContainerStyles = (hasApiKey: boolean) => ({
-    fontSize: '12px',
+    fontSize: '13px',
     color: 'var(--cm-text-color, #e1e1e3)',
     opacity: '0.8',
     padding: '8px 12px',
     display: hasApiKey ? 'flex' : 'none',
     alignItems: 'center',
     background: 'var(--cm-input-bg, rgba(0, 0, 0, 0.2))',
-    borderRadius: '6px',
-    height: '33px',
+    borderRadius: '4px',
+    height: '49px',
     boxSizing: 'border-box',
 })
 
@@ -400,4 +397,13 @@ export const loadingDotFilledStyles = {
 export const loadingDotEmptyStyles = {
     ...loadingDotBaseStyles,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+}
+
+export const settingsPanelContainerStyles = {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    padding: '12px 12px 6px 12px',
 }

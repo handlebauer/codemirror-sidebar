@@ -89,13 +89,18 @@ const assistantPlugin = ViewPlugin.fromClass(
 export interface AssistantOptions extends Omit<SidebarOptions, 'id' | 'dock'> {
     keymap?: string | { mac: string; win: string }
     model?: 'gpt-4' | 'gpt-3.5-turbo' | 'mistral' | 'gemini'
+    /**
+     * Whether the assistant should be open by default
+     * @default false
+     */
+    initiallyOpen?: boolean
 }
 
 /**
  * Creates an AI assistant sidebar extension for CodeMirror
  */
 export function assistant(options: AssistantOptions = {}): Extension[] {
-    const { keymap, ...sidebarOptions } = options
+    const { keymap, initiallyOpen = false, ...sidebarOptions } = options
 
     // Register keymap handlers if configured
     if (keymap) {
@@ -123,6 +128,8 @@ export function assistant(options: AssistantOptions = {}): Extension[] {
             id: 'ai-assistant',
             dock: 'right',
             overlay: true,
+            initiallyOpen,
+            initialPanelId: 'ai-assistant',
         }),
         assistantState,
         sidebarPanel.of(assistantPanelSpec),

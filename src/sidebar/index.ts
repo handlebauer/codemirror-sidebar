@@ -24,6 +24,8 @@ interface SidebarOptions {
     dock?: DockPosition
     id: string // Make id required
     overlay?: boolean // Whether the sidebar overlays the editor or pushes it
+    initiallyOpen?: boolean // Whether the sidebar should be open by default
+    initialPanelId?: string // The ID of the panel to show when initially opened
 }
 
 interface SidebarState {
@@ -59,9 +61,12 @@ const sidebarStates = new Map<string, StateField<SidebarState>>()
 const createSidebarState = (id: string, initialOptions: SidebarOptions) => {
     return StateField.define<SidebarState>({
         create: () => ({
-            visible: false,
+            visible: initialOptions.initiallyOpen ?? false,
             options: initialOptions,
-            activePanelId: null,
+            activePanelId:
+                initialOptions.initiallyOpen && initialOptions.initialPanelId
+                    ? initialOptions.initialPanelId
+                    : null,
         }),
         update(value, tr) {
             let newState = value
@@ -347,7 +352,7 @@ export function createSidebar(options: SidebarOptions): Extension[] {
     return [
         stateField,
         createSidebarPlugin(id),
-        // (Optional: you can keep the updateListener for things like panel switching)
+        // Update the listener to use the initialPanelId from options
         EditorView.updateListener.of(update => {
             const hasToggleEffect = update.transactions.some(tr =>
                 tr.effects.some(
@@ -362,10 +367,7 @@ export function createSidebar(options: SidebarOptions): Extension[] {
                     effects: [
                         setActivePanelEffect.of({
                             id,
-                            panelId:
-                                mergedOptions.dock === 'left'
-                                    ? 'file-explorer'
-                                    : 'ai-assistant',
+                            panelId: mergedOptions.initialPanelId ?? null,
                         }),
                     ],
                 })

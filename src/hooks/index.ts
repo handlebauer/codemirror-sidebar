@@ -18,10 +18,12 @@ interface EditorConfig {
     initialContent?: string
     /**
      * Configuration for the file explorer
+     * @example { initiallyOpen: true, width: '250px' }
      */
     explorer?: ExplorerOptions & { initialFiles?: File[] }
     /**
      * Configuration for the AI assistant
+     * @example { initiallyOpen: true, width: '400px' }
      */
     assistant?: AssistantOptions
     /**
@@ -58,6 +60,7 @@ export function useEditor(config: EditorConfig = {}) {
                               width: '250px',
                               overlay: false,
                               backgroundColor: '#2c313a',
+                              initiallyOpen: false,
                               ...explorerConfig,
                           }),
                       ]
@@ -68,6 +71,7 @@ export function useEditor(config: EditorConfig = {}) {
                           assistant({
                               width: '400px',
                               backgroundColor: '#2c313a',
+                              initiallyOpen: false,
                               ...assistantConfig,
                           }),
                       ]
@@ -75,8 +79,19 @@ export function useEditor(config: EditorConfig = {}) {
                 // Add custom extensions
                 ...extensions,
                 EditorView.theme({
-                    '&': { height: '100vh' },
-                    '.cm-scroller': { overflow: 'auto' },
+                    '&': {
+                        height: '100vh',
+                        display: 'flex !important',
+                        flexDirection: 'row !important',
+                    },
+                    '.cm-scroller': {
+                        overflow: 'auto',
+                        flex: '1 1 auto !important',
+                        minWidth: '0 !important',
+                    },
+                    '.cm-content': {
+                        minHeight: '100%',
+                    },
                 }),
             ],
         })
