@@ -6,9 +6,11 @@ import { markdown } from '@codemirror/lang-markdown'
 import { json } from '@codemirror/lang-json'
 import crelt from 'crelt'
 import { styles, inlineStyles } from './styles'
+import logger from '../utils/logger'
 
 // Add debug logging helper
-const debug = (...args: unknown[]) => console.log('[Explorer]', ...args)
+const debug = (...args: unknown[]) =>
+    logger.debug({ module: 'Explorer' }, args.join(' '))
 
 // Public types and effects
 export interface File {

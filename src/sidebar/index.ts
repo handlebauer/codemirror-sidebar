@@ -7,6 +7,7 @@ import {
 } from '@codemirror/state'
 import crelt from 'crelt'
 import { styles, inlineStyles, defaultSidebarOptions } from './styles'
+import logger from '../utils/logger'
 
 // -- TYPES ---------------------------------------------------------------
 interface SidebarPanelSpec {
@@ -113,7 +114,8 @@ const toggleSidebarCommand = (view: EditorView, sidebarId: string) => {
 }
 
 // -- VIEW PLUGIN ------------------------------------------------------------
-const debug = (...args: unknown[]) => console.log('[Sidebar]', ...args)
+const debug = (...args: unknown[]) =>
+    logger.debug({ module: 'Sidebar' }, args.join(' '))
 
 const createSidebarPlugin = (id: string) =>
     ViewPlugin.fromClass(

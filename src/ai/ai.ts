@@ -2,6 +2,7 @@ import { streamText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { createMistral } from '@ai-sdk/mistral'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import logger from '../utils/logger'
 
 const DEFAULT_MODEL = 'openai:gpt-4o'
 
@@ -20,7 +21,8 @@ interface AIService {
 }
 
 // Debug helper
-const debug = (...args: unknown[]) => console.log('[AI]', ...args)
+const debug = (...args: unknown[]) =>
+    logger.debug({ module: 'AI' }, args.join(' '))
 
 const createAIService = (): AIService => {
     const generateTextFn = async ({
@@ -95,7 +97,7 @@ const createAIService = (): AIService => {
                     const mistralClient = createMistral({
                         apiKey,
                     })
-                    result = await streamText({
+                    result = streamText({
                         model: mistralClient('mistral-large-latest'),
                         system: systemPrompt,
                         prompt: fullPrompt,
@@ -106,7 +108,7 @@ const createAIService = (): AIService => {
                     const googleClient = createGoogleGenerativeAI({
                         apiKey,
                     })
-                    result = await streamText({
+                    result = streamText({
                         model: googleClient('gemini-2.0-flash-001'),
                         system: systemPrompt,
                         prompt: fullPrompt,
@@ -121,7 +123,7 @@ const createAIService = (): AIService => {
                         apiKey,
                         compatibility: 'strict',
                     })
-                    result = await streamText({
+                    result = streamText({
                         model: openaiClient('gpt-4'),
                         system: systemPrompt,
                         prompt: fullPrompt,

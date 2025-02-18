@@ -1,5 +1,6 @@
 import { $ } from 'bun'
 import { config } from './src/config'
+import packageJson from './package.json' assert { type: 'json' }
 
 await Bun.build({
     entrypoints: [
@@ -7,6 +8,10 @@ await Bun.build({
         './src/explorer/index.ts',
         './src/assistant/index.ts',
         './src/hooks/index.ts',
+    ],
+    external: [
+        ...Object.keys(packageJson.dependencies),
+        ...Object.keys(packageJson.peerDependencies),
     ],
     outdir: './dist',
     target: config.BUILD_TARGET,
