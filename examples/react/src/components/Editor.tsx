@@ -5,7 +5,7 @@ import { demoFiles } from './data'
 
 export function Editor() {
     const { ref } = useEditor({
-        initialContent: 'Select a file from the explorer to begin editing',
+        initialContent: '',
         explorer: {
             dock: 'left',
             width: '250px',

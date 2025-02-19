@@ -104,6 +104,9 @@ export function useEditor(config: EditorConfig = {}) {
             })
         }
 
+        // Focus the editor view after initialization
+        view.focus()
+
         viewRef.current = view
 
         return () => {
