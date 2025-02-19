@@ -16,9 +16,9 @@ export const inlineStyles = {
     editor: {
         overlay: {
             display: 'flex !important',
-            position: 'relative',
-            width: '100%',
-            height: '100%',
+            position: 'relative !important',
+            width: '100% !important',
+            height: '100% !important',
         },
         nonOverlay: {
             display: 'flex !important',

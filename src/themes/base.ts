@@ -22,9 +22,8 @@ export const baseTheme = EditorView.theme({
         overflowX: 'auto',
         flex: '1 1 auto !important',
         minWidth: '0 !important',
-        position: 'absolute',
-        width: 'calc(100% - var(--assistant-width, 0px))',
-        right: 'var(--assistant-width, 0px)',
+        position: 'relative',
+        marginRight: 'var(--assistant-width, 0px)',
         '&::-webkit-scrollbar': {
             width: '20px',
             height: '14px',
