@@ -75,19 +75,23 @@ const assistantPanelSpec: SidebarPanelSpec = {
             setupPanelKeyboardShortcuts(dom, view, keymapOpt)
         }
 
-        // Auto-focus textarea when panel is created
-        requestIdleCallback(() => {
-            const textareas = dom.getElementsByTagName('textarea')
-            if (textareas.length > 0) {
-                textareas[0].focus()
-            }
-        })
         return dom
     },
     update(view) {
         const dom = view.dom.querySelector('.cm-assistant-content')
         if (dom) {
             renderAssistantPanel(dom as HTMLElement, view)
+        }
+    },
+    onVisibilityChange(view, visible) {
+        if (visible) {
+            // Focus the input when panel becomes visible
+            requestIdleCallback(() => {
+                const textareas = view.dom.getElementsByTagName('textarea')
+                if (textareas.length > 0) {
+                    textareas[0].focus()
+                }
+            })
         }
     },
 }

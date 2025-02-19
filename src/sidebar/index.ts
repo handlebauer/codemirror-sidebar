@@ -16,6 +16,7 @@ interface SidebarPanelSpec {
     create: (view: EditorView) => HTMLElement
     update?: (view: EditorView) => void
     destroy?: (view: EditorView) => void
+    onVisibilityChange?: (view: EditorView, visible: boolean) => void
 }
 
 type DockPosition = 'left' | 'right'
@@ -199,6 +200,18 @@ const createSidebarPlugin = (id: string) =>
                     // If sidebar is being hidden, return focus to editor
                     if (!state.visible) {
                         update.view.focus()
+                    }
+
+                    // Notify panel of visibility change
+                    const panels = update.state.facet(sidebarPanel)
+                    const activePanel = panels.find(
+                        p => p.id === state.activePanelId,
+                    )
+                    if (activePanel?.onVisibilityChange) {
+                        activePanel.onVisibilityChange(
+                            update.view,
+                            state.visible,
+                        )
                     }
                 }
                 if (state.options !== oldState.options) {
