@@ -305,6 +305,13 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         view.dispatch({
             effects: toggleSettingsEffect.of(false),
         })
+        // Focus the input after returning from settings
+        requestIdleCallback(() => {
+            const textareas = view.dom.getElementsByTagName('textarea')
+            if (textareas.length > 0) {
+                textareas[0].focus()
+            }
+        })
     })
 
     headerContainer.appendChild(header)
