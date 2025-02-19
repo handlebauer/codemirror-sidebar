@@ -1,4 +1,4 @@
-import { ViewPlugin, ViewUpdate, EditorView } from '@codemirror/view'
+import { ViewPlugin, ViewUpdate, type EditorView } from '@codemirror/view'
 import {
     switchTabEffect,
     addMessageEffect,
@@ -16,31 +16,48 @@ import {
     type SidebarPanelSpec,
     toggleSidebarCommand,
 } from '../sidebar'
+import { createSidebarKeymap } from '../sidebar/keymap'
 import type { Extension } from '@codemirror/state'
+import logger from '../utils/logger'
+import { Facet } from '@codemirror/state'
 
-// Global keymap handler for sidebars
-const globalKeymapHandlers = new Map<string, (view: EditorView) => boolean>()
+const debug = (...args: unknown[]) => logger.debug('[Assistant]', ...args)
 
-// Initialize global keymap listener
-if (typeof window !== 'undefined') {
-    window.addEventListener('keydown', event => {
-        const isMac = /Mac/.test(navigator.platform)
+/**
+ * Handles keyboard shortcuts for the assistant panel
+ */
+function setupPanelKeyboardShortcuts(
+    dom: HTMLElement,
+    view: EditorView,
+    keyConfig: string | { mac?: string; win?: string },
+) {
+    const isMac = /Mac/.test(navigator.platform)
+
+    // Convert keyConfig to normalized format
+    const keys =
+        typeof keyConfig === 'string'
+            ? { mac: keyConfig, win: keyConfig }
+            : keyConfig
+
+    // Create key matcher based on platform
+    const targetKey = (isMac ? keys.mac : keys.win)?.toLowerCase()
+    if (!targetKey) return
+
+    debug('Setting up panel keyboard shortcuts:', { isMac, targetKey })
+
+    // Add keyboard event listener to the panel
+    dom.addEventListener('keydown', (event: KeyboardEvent) => {
         const modKey = isMac ? event.metaKey : event.ctrlKey
         if (!modKey) return
 
-        const key = `${isMac ? 'Cmd' : 'Ctrl'}-${event.key.toLowerCase()}`
-        const handler = globalKeymapHandlers.get(key)
-        if (handler) {
-            const editorElement = document.querySelector(
-                '.cm-editor',
-            ) as HTMLElement
-            if (editorElement) {
-                const view = EditorView.findFromDOM(editorElement)
-                if (view) {
-                    event.preventDefault()
-                    handler(view)
-                }
-            }
+        const pressedKey = `${isMac ? 'cmd' : 'ctrl'}-${event.key.toLowerCase()}`
+        debug('Key pressed in panel:', pressedKey)
+
+        if (pressedKey === targetKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            debug('Executing panel keyboard shortcut:', targetKey)
+            toggleSidebarCommand(view, 'ai-assistant')
         }
     })
 }
@@ -51,6 +68,13 @@ const assistantPanelSpec: SidebarPanelSpec = {
         const dom = document.createElement('div')
         dom.className = 'cm-assistant-content'
         renderAssistantPanel(dom, view)
+
+        // Get keymap config from options
+        const keymapOpt = view.state.facet(assistantKeymap)
+        if (keymapOpt) {
+            setupPanelKeyboardShortcuts(dom, view, keymapOpt)
+        }
+
         // Auto-focus textarea when panel is created
         requestIdleCallback(() => {
             const textareas = dom.getElementsByTagName('textarea')
@@ -67,6 +91,14 @@ const assistantPanelSpec: SidebarPanelSpec = {
         }
     },
 }
+
+// Store keymap config in a facet
+const assistantKeymap = Facet.define<
+    string | { mac?: string; win?: string },
+    string | { mac?: string; win?: string }
+>({
+    combine: values => values[0], // Just use the first value since we only set it once
+})
 
 const assistantPlugin = ViewPlugin.fromClass(
     class {
@@ -100,27 +132,11 @@ export interface AssistantOptions extends Omit<SidebarOptions, 'id' | 'dock'> {
  * Creates an AI assistant sidebar extension for CodeMirror
  */
 export function assistant(options: AssistantOptions = {}): Extension[] {
-    const { keymap, initiallyOpen = false, ...sidebarOptions } = options
-
-    // Register keymap handlers if configured
-    if (keymap) {
-        if (typeof keymap === 'string') {
-            globalKeymapHandlers.set(keymap, view =>
-                toggleSidebarCommand(view, 'ai-assistant'),
-            )
-        } else {
-            if (keymap.mac) {
-                globalKeymapHandlers.set(keymap.mac, view =>
-                    toggleSidebarCommand(view, 'ai-assistant'),
-                )
-            }
-            if (keymap.win) {
-                globalKeymapHandlers.set(keymap.win, view =>
-                    toggleSidebarCommand(view, 'ai-assistant'),
-                )
-            }
-        }
-    }
+    const {
+        keymap: keymapOpt,
+        initiallyOpen = false,
+        ...sidebarOptions
+    } = options
 
     return [
         ...createSidebar({
@@ -134,6 +150,10 @@ export function assistant(options: AssistantOptions = {}): Extension[] {
         assistantState,
         sidebarPanel.of(assistantPanelSpec),
         assistantPlugin,
+        // Store keymap config in facet
+        keymapOpt ? assistantKeymap.of(keymapOpt) : [],
+        // Add editor keymap
+        createSidebarKeymap('ai-assistant', keymapOpt),
     ]
 }
 

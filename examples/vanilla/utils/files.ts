@@ -1,6 +1,7 @@
 import { EditorView } from 'codemirror'
 import { toggleSidebarEffect } from '../../../src'
 import { updateFilesEffect, type File } from '../../../src/explorer'
+import logger from '../../../src/utils/logger'
 
 export async function initializeEditorContent(
     view: EditorView,
@@ -20,7 +21,7 @@ export async function initializeEditorContent(
             ],
         })
     } catch (error) {
-        console.error('Error initializing editor content:', error)
+        logger.error('Error initializing editor content:', error)
         // Use fallback on error
         view.dispatch({
             effects: [

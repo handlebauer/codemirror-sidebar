@@ -104,6 +104,14 @@ const toggleSidebarCommand = (view: EditorView, sidebarId: string) => {
     }
 
     const state = view.state.field(stateField)
+    debug(
+        'Toggling sidebar:',
+        sidebarId,
+        'from:',
+        state.visible,
+        'to:',
+        !state.visible,
+    )
     view.dispatch({
         effects: toggleSidebarEffect.of({
             id: sidebarId,
@@ -129,7 +137,6 @@ const createSidebarPlugin = (id: string) =>
             isDragging: boolean = false
 
             constructor(view: EditorView) {
-                debug('Initializing sidebar plugin:', id)
                 this.dom = this.createSidebarDOM()
                 this.panelContainer = crelt('div', {
                     class: styles.panelContainer,
@@ -147,7 +154,6 @@ const createSidebarPlugin = (id: string) =>
                 view.dom.appendChild(this.dom)
                 view.dom.style.position = 'relative'
                 this.renderActivePanel(view, state)
-                debug('Sidebar plugin initialized:', id)
             }
 
             update(update: ViewUpdate) {
@@ -310,12 +316,6 @@ const createSidebarPlugin = (id: string) =>
 
             private renderActivePanel(view: EditorView, state: SidebarState) {
                 const panelSpecs = view.state.facet(sidebarPanel)
-
-                debug('Rendering active panel:', id, state.activePanelId)
-                debug(
-                    'Available panels:',
-                    panelSpecs.map(spec => spec.id),
-                )
 
                 this.panelContainer.innerHTML = ''
                 this.activePanel = null

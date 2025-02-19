@@ -2,6 +2,7 @@ import { type Extension } from '@codemirror/state'
 import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { type DockPosition } from '../sidebar'
 import { createSidebar, sidebarPanel, toggleSidebarCommand } from '../sidebar'
+import { createSidebarKeymap } from '../sidebar/keymap'
 import {
     fileExplorerState,
     fileExplorerPanelSpec,
@@ -152,6 +153,7 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         sidebarPanel.of(fileExplorerPanelSpec),
         languageCompartment.of([]), // Initialize language compartment with empty configuration
         onFileSelect ? createFileSelectPlugin(onFileSelect) : [],
+        createSidebarKeymap('file-explorer', keymap),
     ]
 }
 
