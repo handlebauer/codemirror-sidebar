@@ -7,7 +7,6 @@ import { python } from '@codemirror/lang-python'
 import { LanguageSupport } from '@codemirror/language'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
-import * as styles from './styles'
 
 // Interface for storing code block information
 interface CodeBlockInfo {
@@ -65,19 +64,17 @@ class CodeBlockWidget extends WidgetType {
 
     toDOM(): HTMLElement {
         const wrapper = document.createElement('div')
-        Object.assign(wrapper.style, styles.codeBlockWrapperStyles)
-        wrapper.className = 'cm-ai-codeblock'
+        wrapper.className = 'cm-ext-assistant-code'
 
         // Create header with language badge if language is specified
         if (this.language) {
             const header = document.createElement('div')
-            Object.assign(header.style, styles.codeBlockHeaderStyles)
-            header.className = 'cm-ai-codeblock-header'
+            header.className = 'cm-ext-assistant-code-header'
 
             // Add a dot icon before the language name
             const dot = document.createElement('span')
             dot.textContent = '●'
-            Object.assign(dot.style, styles.dotStyles)
+            dot.style.marginRight = '6px'
             header.appendChild(dot)
 
             const langText = document.createElement('span')
@@ -91,17 +88,12 @@ class CodeBlockWidget extends WidgetType {
                     (CodeBlockWidget.chunkCounter + 1) % 3
 
                 const loadingDots = document.createElement('div')
-                Object.assign(loadingDots.style, styles.loadingDotsStyles)
+                loadingDots.className = 'cm-ext-assistant-loading-dots'
 
                 // Create three dots that fill in sequence based on chunk count
                 for (let i = 0; i < 3; i++) {
                     const dot = document.createElement('div')
-                    Object.assign(
-                        dot.style,
-                        i <= CodeBlockWidget.chunkCounter
-                            ? styles.loadingDotFilledStyles
-                            : styles.loadingDotEmptyStyles,
-                    )
+                    dot.className = `cm-ext-assistant-loading-dot ${i <= CodeBlockWidget.chunkCounter ? 'filled' : 'empty'}`
                     loadingDots.appendChild(dot)
                 }
 
@@ -111,7 +103,7 @@ class CodeBlockWidget extends WidgetType {
             // Add copy button (only for complete blocks)
             if (!this.isIncomplete) {
                 const copyButton = document.createElement('button')
-                Object.assign(copyButton.style, styles.copyButtonStyles)
+                copyButton.className = 'cm-ext-assistant-code-copy'
                 copyButton.title = 'Copy code'
                 copyButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -142,8 +134,7 @@ class CodeBlockWidget extends WidgetType {
         // Only create editor container if we have complete content
         if (!this.isIncomplete) {
             const editorContainer = document.createElement('div')
-            Object.assign(editorContainer.style, styles.codeBlockContentStyles)
-            editorContainer.className = 'cm-ai-codeblock-content'
+            editorContainer.className = 'cm-ext-assistant-code-editor'
 
             const languageSupport = this.language
                 ? getLanguageSupport(this.language)
@@ -153,26 +144,6 @@ class CodeBlockWidget extends WidgetType {
                 EditorView.lineWrapping,
                 EditorState.readOnly.of(true),
                 oneDark,
-                EditorView.theme({
-                    '&': {
-                        backgroundColor: 'transparent !important',
-                    },
-                    '.cm-content': {
-                        padding: '0 !important',
-                        fontFamily:
-                            'var(--cm-font-family-mono, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace) !important',
-                        fontSize: '13px !important',
-                        lineHeight: '1.5 !important',
-                    },
-                    '.cm-line': {
-                        padding: '0 !important',
-                    },
-                    '.cm-scroller': {
-                        height: 'auto !important',
-                        flex: 'initial !important',
-                        width: '100% !important',
-                    },
-                }),
             ]
 
             if (languageSupport) {

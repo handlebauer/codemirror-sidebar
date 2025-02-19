@@ -158,6 +158,7 @@ export const assistantTheme: ExtensionTheme = {
             },
             '&.cm-ext-assistant-message-bot': {
                 alignSelf: 'flex-start',
+                width: 'calc(100% - 10px)',
                 background: 'var(--cm-ext-assistant-bg-message)',
                 color: 'var(--cm-ext-assistant-text)',
             },
