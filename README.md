@@ -131,24 +131,29 @@ function Editor() {
 
 // Example with file selection callback
 function EditorWithFileCallback() {
-    const { ref } = useEditor({
+    const { ref, view } = useEditor({
         initialContent: 'Select a file to begin editing',
         explorer: {
             initiallyOpen: true,
             width: '250px',
+            initialFiles: [
+                { name: 'main.ts', content: 'console.log("Hello")' },
+                { name: 'utils.ts', content: 'export const add = (a, b) => a + b' }
+            ],
             // Simple callback when files are selected
             onFileSelect: (filename) => {
                 console.log('Selected file:', filename)
-                // You can do anything here:
-                // - Update UI state
-                // - Trigger side effects
-                // - Call APIs
-                // - etc.
             },
         },
     })
 
-    return <div ref={ref} style={{ height: '100vh' }} />
+    // Example: Change active file programmatically
+    const openFile = (filename: string) => {
+        if (!view) return
+        view.dispatch({
+            effects: [selectFileEffect.of(filename)]
+        })
+    }
 }
 ```
 
@@ -211,28 +216,23 @@ view.dispatch({
     ],
 })
 
-// Programmatically select a file
+// Change which file is active in the editor
 view.dispatch({
     effects: [selectFileEffect.of('src/main.ts')],
+})
+
+// You can combine this with onFileSelect to track the active file
+const explorerExtension = explorer({
+    width: '250px',
+    onFileSelect: (filename, view) => {
+        console.log(`Active file changed to: ${filename}`)
+        // You could update React state, URL, or other UI elements here
+    },
 })
 
 // Set project name in explorer
 view.dispatch({
     effects: [setProjectNameEffect.of('My Project')],
-})
-
-// Listen for file selection events
-const explorerExtension = explorer({
-    width: '250px',
-    onFileSelect: (filename, view) => {
-        console.log(`Selected file: ${filename}`)
-        // You can access the file's content from the explorer state
-        const state = view.state.field(fileExplorerState)
-        const file = state.files.find(f => f.name === filename)
-        if (file) {
-            console.log('File content:', file.content)
-        }
-    },
 })
 ```
 
