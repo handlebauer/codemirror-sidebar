@@ -109,12 +109,6 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     tabsContainer.appendChild(controlsContainer)
     dom.appendChild(tabsContainer)
 
-    // Add border right after tabs
-    const headerBorder = crelt('div', {
-        class: 'cm-ext-assistant-header-border',
-    })
-    dom.appendChild(headerBorder)
-
     // Create messages container
     const messagesContainer = crelt('div', {
         class: 'cm-ext-assistant-messages',
