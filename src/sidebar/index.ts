@@ -140,6 +140,9 @@ const createSidebarPlugin = (id: string) =>
                 this.dom = this.createSidebarDOM()
                 this.panelContainer = crelt('div', {
                     class: styles.panelContainer,
+                    'data-dock':
+                        view.state.field(sidebarStates.get(id)!).options.dock ||
+                        'left',
                 })
                 this.resizeHandle = this.createResizeHandle()
                 this.dom.appendChild(this.resizeHandle)
@@ -163,8 +166,13 @@ const createSidebarPlugin = (id: string) =>
 
                 if (state.visible !== oldState.visible) {
                     debug('Visibility changed:', id, state.visible)
-                    this.updateVisibility(state.visible)
                     this.applySidebarStyles(state.options, state.visible)
+                    this.updateVisibility(state.visible)
+
+                    // If sidebar is being hidden, return focus to editor
+                    if (!state.visible) {
+                        update.view.focus()
+                    }
                 }
                 if (state.options !== oldState.options) {
                     debug('Options changed:', id, state.options)
@@ -189,7 +197,10 @@ const createSidebarPlugin = (id: string) =>
             }
 
             private updateVisibility(visible: boolean) {
-                this.dom.style.display = visible ? 'block' : 'none'
+                Object.assign(
+                    this.dom.style,
+                    visible ? {} : inlineStyles.sidebar.hidden,
+                )
             }
 
             private createResizeHandle(): HTMLElement {
@@ -312,6 +323,12 @@ const createSidebarPlugin = (id: string) =>
                         )
                     }
                 }
+
+                // Update data-dock attribute when options change
+                this.panelContainer.setAttribute(
+                    'data-dock',
+                    options.dock || 'left',
+                )
             }
 
             private renderActivePanel(view: EditorView, state: SidebarState) {

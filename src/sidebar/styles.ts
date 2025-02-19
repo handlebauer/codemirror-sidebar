@@ -9,14 +9,17 @@ export const styles = {
 export const defaultSidebarOptions = {
     width: '250px',
     backgroundColor: '#21222c',
-    overlay: true, // Default to overlay behavior
+    overlay: true,
 }
 
 export const inlineStyles = {
     editor: {
         overlay: {
-            display: 'block',
+            display: 'flex !important',
+            flexDirection: 'row-reverse !important',
             position: 'relative',
+            width: '100%',
+            height: '100%',
         },
         nonOverlay: {
             display: 'flex !important',
@@ -27,39 +30,41 @@ export const inlineStyles = {
     sidebar: {
         base: {
             height: '100%',
-            flexShrink: '0',
+            width: '250px',
             display: 'flex',
             flexDirection: 'column',
-            transition: 'none', // Remove transition for smoother resizing
-            minWidth: '0', // Important for flex layout
+            flexShrink: '0',
+            transition: 'transform 0.2s ease-in-out',
+            transform: 'translateX(0)',
         },
         overlay: {
-            position: 'absolute',
-            top: '0',
             zIndex: '10',
+            position: 'relative',
         },
         nonOverlay: {
             position: 'relative',
             zIndex: '1',
             overflow: 'hidden',
             flexShrink: '0',
-            flexBasis: 'auto',
+        },
+        hidden: {
+            transform: 'translateX(100%)',
+            display: 'none',
         },
     },
     resizeHandle: {
         position: 'absolute',
         top: '0',
-        width: '4px',
+        width: '8px',
         height: '100%',
         cursor: 'col-resize',
         zIndex: '20',
     },
     editorContent: {
-        flex: '1 1 auto !important',
-        width: 'auto !important',
-        position: 'relative',
-        minWidth: '0 !important', // Important for flex layout
-        height: '100% !important',
+        flex: '1',
+        minWidth: '0',
+        height: '100%',
+        overflow: 'auto',
     },
     dragging: {
         cursor: 'col-resize',

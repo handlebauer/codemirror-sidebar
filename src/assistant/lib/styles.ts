@@ -24,7 +24,7 @@ export const tabsGroupStyles = {
 
 export const getTabStyles = (isActive: boolean) => ({
     background: isActive
-        ? 'var(--cm-selected-bg, rgba(255, 255, 255, 0.05))'
+        ? 'var(--cm-selected-bg, rgba(255, 255, 255, 0.03))'
         : 'none',
     border: 'none',
     padding: '6px 10px',

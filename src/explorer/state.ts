@@ -121,7 +121,10 @@ function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     const explorerState = view.state.field(fileExplorerState)
     const header = crelt(
         'h3',
-        { style: inlineStyles.header },
+        {
+            class: 'cm-explorer-header',
+            style: inlineStyles.header,
+        },
         explorerState.projectName || 'Files',
     )
     const fileList = crelt('ul', {

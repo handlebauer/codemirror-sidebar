@@ -85,12 +85,84 @@ export function useEditor(config: EditorConfig = {}) {
                         flexDirection: 'row !important',
                     },
                     '.cm-scroller': {
-                        overflow: 'auto',
+                        background: '#23272d',
+                        overflowY: 'scroll',
+                        overflowX: 'auto',
                         flex: '1 1 auto !important',
                         minWidth: '0 !important',
+                        position: 'relative',
+                        '&::-webkit-scrollbar': {
+                            width: '20px',
+                            height: '14px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            background: 'rgba(35, 39, 45, 1)',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            background: 'rgba(69, 74, 81, 0.5)',
+                            borderRadius: '0',
+                            border: '3px solid #23272d',
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            background: '#555b63',
+                        },
+                    },
+                    '.cm-scroller::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        height: 'calc(100% + 20%)',
+                        width: '1px',
+                        visibility: 'hidden',
                     },
                     '.cm-content': {
                         minHeight: '100%',
+                    },
+                    '.cm-gutter': {
+                        background: '#23272d',
+                        width: '30px',
+                    },
+                    '.cm-sidebar-panel-container': {
+                        background: '#1e2227',
+                    },
+                    '.cm-sidebar-panel-container[data-dock="left"]': {
+                        borderRight: '0.5px solid rgba(255, 255, 255, 0.2)',
+                    },
+                    '.cm-sidebar-panel-container[data-dock="right"]': {
+                        borderLeft: '0.5px solid rgba(255, 255, 255, 0.2)',
+                    },
+                    '.cm-sidebar-resize-handle': {
+                        cursor: 'col-resize',
+                        transition: 'none',
+                        backgroundColor: 'transparent',
+                    },
+                    '.cm-sidebar-resize-handle:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transitionProperty: 'background-color',
+                        transitionDuration: '0.2s',
+                        transitionTimingFunction: 'ease',
+                        transitionDelay: '150ms',
+                    },
+                    '.cm-sidebar-resize-handle:active': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        transition: 'none',
+                    },
+                    '.cm-explorer-header': {
+                        color: '#b1b1b3 !important',
+                    },
+                    '.cm-explorer-item': {
+                        border: '1px solid #1e2227',
+                        margin: 0,
+                        padding: '3px 0',
+                    },
+                    '.cm-explorer-item:hover': {
+                        border: '1px solid #2e3035',
+                    },
+                    '.cm-explorer-item.cm-explorer-item-selected': {
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                    },
+                    '.cm-sidebar-panel-container h3': {
+                        color: '#fff',
                     },
                 }),
             ],

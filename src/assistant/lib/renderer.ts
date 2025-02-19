@@ -332,7 +332,7 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
     const description = crelt(
         'div',
         {},
-        'Configure API keys for each model provider. Keys are stored locally and never transmitted.',
+        'Keys are stored locally and never transmitted',
     )
     Object.assign(description.style, styles.settingsDescriptionStyles)
     dom.appendChild(description)
