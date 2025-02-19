@@ -120,7 +120,7 @@ export const assistantTheme: ExtensionTheme = {
             position: 'relative',
             boxSizing: 'border-box',
             '&.cm-ext-assistant-tab-active': {
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'var(--cm-ext-assistant-bg-selected)',
                 opacity: '1',
                 '&::after': {
                     content: '""',
@@ -235,18 +235,6 @@ export const assistantTheme: ExtensionTheme = {
             overflow: 'hidden',
             boxSizing: 'border-box',
             padding: '12px 12px 6px 12px',
-        },
-        '.cm-ext-assistant-settings-header': {
-            fontSize: '13px',
-            fontWeight: '500',
-            color: 'var(--cm-text-color, #e1e1e3)',
-            padding: '6px 10px',
-            background: 'var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
-            borderRadius: '4px 4px 0 0',
-            marginBottom: '-1px',
-            borderBottom:
-                '1px solid var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
-            display: 'inline-block',
         },
         '.cm-ext-assistant-settings-description': {
             fontSize: '12px',

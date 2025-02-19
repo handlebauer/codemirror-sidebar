@@ -282,7 +282,7 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
     // Header styled like a tab
     const header = crelt(
         'div',
-        { class: 'cm-ext-assistant-settings-header' },
+        { class: 'cm-ext-assistant-tab cm-ext-assistant-tab-active' },
         'API Key Settings',
     )
 
