@@ -108,7 +108,7 @@ const assistantPlugin = ViewPlugin.fromClass(
                 update.startState.field(assistantState)
             ) {
                 const dom = update.view.dom.querySelector(
-                    '.cm-assistant-content',
+                    '.cm-ext-assistant-container, .cm-ext-assistant-settings',
                 )
                 if (dom) {
                     renderAssistantPanel(dom as HTMLElement, update.view)

@@ -73,6 +73,17 @@ export const assistantThemeVariables: AssistantThemeVariables = {
  */
 export const assistantTheme: ExtensionTheme = {
     theme: EditorView.theme({
+        '&': {
+            // Apply all theme variables to the root
+            ...Object.entries(assistantThemeVariables).reduce(
+                (acc, [key, value]) => ({
+                    ...acc,
+                    [key]: value,
+                }),
+                {},
+            ),
+        },
+
         '.cm-ext-assistant-container': {
             display: 'flex',
             flexDirection: 'column',
@@ -93,24 +104,33 @@ export const assistantTheme: ExtensionTheme = {
             alignItems: 'center',
             height: '37px',
             borderBottom: '1px solid var(--cm-ext-assistant-border)',
-            marginBottom: '12px',
+            marginBottom: '1px',
         },
         '.cm-ext-assistant-tab': {
             background: 'none',
             border: 'none',
             padding: '6px 10px',
-            fontSize: 'var(--cm-ext-assistant-font-size-header)',
-            fontWeight: 'var(--cm-ext-assistant-font-weight-header)',
+            fontSize: 'var(--cm-ext-assistant-font-size)',
+            fontWeight: '500',
             cursor: 'pointer',
             borderRadius: '4px 4px 0 0',
             color: 'var(--cm-ext-assistant-text)',
             opacity: '0.7',
             transition: 'opacity 0.2s',
             marginBottom: '-1px',
+            position: 'relative',
             '&.cm-ext-assistant-tab-active': {
-                background: 'var(--cm-ext-assistant-bg-selected)',
+                background: 'rgba(255, 255, 255, 0.03)',
                 opacity: '1',
-                borderBottom: '1px solid var(--cm-ext-assistant-bg-selected)',
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: '-1px',
+                    left: 0,
+                    right: 0,
+                    height: '2px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                },
             },
         },
 
@@ -189,44 +209,327 @@ export const assistantTheme: ExtensionTheme = {
                 lineHeight: 'var(--cm-ext-assistant-line-height)',
                 resize: 'none',
                 outline: 'none',
+                transition: 'border-color 0.2s ease',
                 '&:focus': {
-                    borderColor: 'var(--cm-ext-assistant-accent)',
+                    borderColor: 'var(--cm-ext-assistant-border-focus)',
                 },
             },
         },
 
         // Settings
         '.cm-ext-assistant-settings': {
-            padding: '16px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
-            '& select': {
-                background: 'transparent',
-                border: 'transparent',
+            height: '100%',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+            padding: '12px 12px 6px 12px',
+        },
+        '.cm-ext-assistant-settings-header': {
+            fontSize: '13px',
+            fontWeight: '500',
+            color: 'var(--cm-text-color, #e1e1e3)',
+            padding: '6px 10px',
+            background: 'var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
+            borderRadius: '4px 4px 0 0',
+            marginBottom: '-1px',
+            borderBottom:
+                '1px solid var(--cm-selected-bg, rgba(255, 255, 255, 0.05))',
+            display: 'inline-block',
+        },
+        '.cm-ext-assistant-settings-description': {
+            fontSize: '12px',
+            marginTop: '12px',
+            marginBottom: '16px',
+            color: 'var(--cm-text-color, #e1e1e3)',
+            opacity: '0.7',
+        },
+        '.cm-ext-assistant-settings-inputs': {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+        },
+        '.cm-ext-assistant-settings-input': {
+            display: 'flex',
+            gap: '8px',
+            padding: '8px',
+            borderRadius: '6px',
+            height: '49px',
+            boxSizing: 'border-box',
+            '& input': {
+                flex: '1',
+                background: 'var(--cm-input-bg, rgba(0, 0, 0, 0.2))',
+                border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
                 borderRadius: '4px',
-                color: 'var(--cm-ext-assistant-text)',
-                padding: '4px 24px 4px 8px',
-                fontSize: 'var(--cm-ext-assistant-font-size)',
-                cursor: 'pointer',
+                padding: '8px 12px',
+                fontSize: '13px',
+                color: 'var(--cm-text-color, #e1e1e3)',
                 outline: 'none',
-                appearance: 'none',
+                transition: 'all 0.2s ease',
+                fontFamily: 'monospace',
+                boxSizing: 'border-box',
             },
-            '& button': {
-                background: 'none',
-                border: 'none',
-                padding: '6px 8px',
-                fontSize: 'var(--cm-ext-assistant-font-size)',
-                cursor: 'pointer',
-                opacity: '0.7',
-                transition: 'opacity 0.2s',
-                color: 'var(--cm-ext-assistant-text)',
+        },
+
+        // Controls and Model Select
+        '.cm-ext-assistant-controls': {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+        },
+        '.cm-ext-assistant-model-select': {
+            background: 'transparent',
+            border: 'transparent',
+            borderRadius: '4px',
+            color: 'var(--cm-ext-assistant-text)',
+            padding: '4px 24px 4px 8px',
+            fontSize: 'var(--cm-ext-assistant-font-size)',
+            cursor: 'pointer',
+            outline: 'none',
+            appearance: 'none',
+            backgroundImage:
+                'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20fill%3D%22%23e1e1e3%22%20d%3D%22M7%2010L3.5%206h7L7%2010z%22%2F%3E%3C%2Fsvg%3E")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 4px center',
+            textAlign: 'right',
+            direction: 'rtl',
+        },
+
+        // Loading States
+        '.cm-ext-assistant-loading': {
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4px 0',
+            alignSelf: 'flex-start',
+            opacity: '0.7',
+        },
+        '.cm-ext-assistant-spinner': {
+            width: '12px',
+            height: '12px',
+            border: '1.5px solid var(--cm-ext-assistant-border)',
+            borderTop: '1.5px solid var(--cm-ext-assistant-text)',
+            borderRadius: '50%',
+            animation: 'cm-spin 0.8s linear infinite',
+        },
+        '.cm-ext-assistant-header-spinner': {
+            marginLeft: 'auto',
+            width: '8px',
+            height: '8px',
+            border: '1.5px solid transparent',
+            borderTopColor: 'currentColor',
+            borderRightColor: 'currentColor',
+            borderRadius: '50%',
+            animation: 'cm-spin 0.8s linear infinite',
+        },
+
+        // Code Block Enhancements
+        '.cm-ext-assistant-code-copy': {
+            background: 'none',
+            border: 'none',
+            padding: '4px',
+            cursor: 'pointer',
+            color: 'inherit',
+            opacity: '0.5',
+            transition: 'opacity 0.2s',
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '16px',
+            '&:hover': {
+                opacity: '0.8',
+            },
+        },
+        '.cm-ext-assistant-code-incomplete': {
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60px',
+            color: 'var(--cm-ext-assistant-text-secondary)',
+            fontFamily: 'var(--cm-ext-assistant-font-mono)',
+            fontSize: 'var(--cm-ext-assistant-font-size)',
+            background: 'var(--cm-ext-assistant-bg-code)',
+            borderTop: '1px solid var(--cm-ext-assistant-border)',
+        },
+        '.cm-ext-assistant-inline-code': {
+            background: 'var(--cm-ext-assistant-bg-code)',
+            padding: '1px 4px',
+            borderRadius: '3px',
+            fontFamily: 'var(--cm-ext-assistant-font-mono)',
+            fontSize: 'calc(var(--cm-ext-assistant-font-size) - 1px)',
+            display: 'inline',
+            whiteSpace: 'pre',
+            color: 'var(--cm-ext-assistant-text)',
+        },
+
+        // Loading Dots
+        '.cm-ext-assistant-loading-dots': {
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '3px',
+            marginLeft: 'auto',
+            opacity: '0.5',
+            height: '16px',
+        },
+        '.cm-ext-assistant-loading-dot': {
+            width: '3px',
+            height: '3px',
+            borderRadius: '50%',
+            transition: 'background-color 0.15s ease',
+            '&.filled': {
+                backgroundColor: 'currentColor',
+            },
+            '&.empty': {
+                backgroundColor: 'var(--cm-ext-assistant-border)',
+            },
+        },
+
+        // Provider Styles
+        '.cm-ext-assistant-provider': {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+            padding: '2px',
+            background: 'var(--cm-input-bg, rgba(255, 255, 255, 0.03))',
+            borderRadius: '4px',
+        },
+        '.cm-ext-assistant-provider-header': {
+            fontSize: '13px',
+            fontWeight: '600',
+            color: 'var(--cm-text-color, #e1e1e3)',
+            padding: '8px 12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+            boxSizing: 'border-box',
+        },
+        '.cm-ext-assistant-provider-message': {
+            fontSize: '13px',
+            color: 'var(--cm-text-color, #e1e1e3)',
+            opacity: '0.8',
+            padding: '4px 12px',
+            display: 'none',
+            alignItems: 'center',
+            borderRadius: '4px',
+            height: '49px',
+            boxSizing: 'border-box',
+            gap: '8px',
+            '&.has-api-key': {
                 display: 'flex',
-                alignItems: 'center',
+            },
+            '& .checkmark': {
+                color: '#4caf50',
+            },
+            '& .cm-ext-assistant-settings-button': {
+                marginLeft: 'auto',
+                padding: '8px',
+                height: '100%',
+                alignSelf: 'center',
+                opacity: '0.5',
                 '&:hover': {
-                    opacity: '1',
+                    opacity: '0.8',
                 },
             },
+        },
+        '.cm-ext-assistant-provider-input': {
+            display: 'flex',
+            gap: '8px',
+            padding: '8px',
+            borderRadius: '6px',
+            height: '49px',
+            boxSizing: 'border-box',
+            '&.has-api-key': {
+                display: 'none',
+            },
+            '& input': {
+                flex: '1',
+                background: 'var(--cm-input-bg, rgba(0, 0, 0, 0.2))',
+                border: '1px solid var(--cm-border-color, rgba(255, 255, 255, 0.1))',
+                borderRadius: '4px',
+                padding: '8px 12px',
+                fontSize: '13px',
+                color: 'var(--cm-text-color, #e1e1e3)',
+                outline: 'none',
+                transition: 'all 0.2s ease',
+                fontFamily: 'monospace',
+                boxSizing: 'border-box',
+            },
+        },
+
+        // Animation keyframes
+        '@keyframes cm-spin': {
+            from: { transform: 'rotate(0deg)' },
+            to: { transform: 'rotate(360deg)' },
+        },
+
+        // Additional UI Elements
+        '.cm-ext-assistant-settings-button': {
+            background: 'none',
+            border: 'none',
+            padding: '6px 8px',
+            fontSize: 'var(--cm-ext-assistant-font-size)',
+            cursor: 'pointer',
+            opacity: '0.7',
+            transition: 'opacity 0.2s',
+            color: 'var(--cm-ext-assistant-text)',
+            display: 'flex',
+            alignItems: 'center',
+            '&:hover': {
+                opacity: '1',
+            },
+            '.cm-ext-assistant-provider-input &': {
+                marginLeft: '8px',
+                padding: '8px',
+                height: '100%',
+                alignSelf: 'center',
+                opacity: '0.5',
+                '&:hover': {
+                    opacity: '0.8',
+                },
+            },
+        },
+        '.cm-ext-assistant-header-border': {
+            height: '1px',
+            background: 'var(--cm-ext-assistant-border)',
+            margin: '-2px 0 12px',
+        },
+        '.cm-ext-assistant-tabs-group': {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+        },
+        '.cm-ext-assistant-message-content': {
+            whiteSpace: 'pre-wrap',
+            lineHeight: '1.2',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0',
+        },
+
+        // Code Block Editor Theme
+        '.cm-ext-assistant-code-editor': {
+            backgroundColor: 'transparent !important',
+            height: 'auto !important',
+            flex: 'initial !important',
+            position: 'static !important',
+        },
+        '.cm-ext-assistant-code-editor .cm-content': {
+            padding: '16px !important',
+            height: 'auto !important',
+            fontFamily: 'var(--cm-ext-assistant-font-mono) !important',
+            fontSize: 'var(--cm-ext-assistant-font-size) !important',
+            lineHeight: '1.5 !important',
+        },
+        '.cm-ext-assistant-code-editor .cm-line': {
+            padding: '0 !important',
+        },
+        '.cm-ext-assistant-code-editor .cm-scroller': {
+            height: 'auto !important',
+            flex: 'initial !important',
+            width: '100% !important',
         },
     }),
 }

@@ -15,7 +15,6 @@ import type { Message } from '../types'
 import type { ModelId } from '../../ai/types'
 import { AVAILABLE_MODELS } from '../constants'
 import { formatProviderName, mapModelToAIService } from './utils'
-import * as styles from './styles'
 
 // Debug helper
 const debug = (...args: unknown[]) =>
@@ -43,20 +42,21 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     }
 
     dom.innerHTML = '' // Clear existing content
-
-    // Set structural styles on container
-    Object.assign(dom.style, styles.containerStyles)
+    dom.className = 'cm-ext-assistant-container'
 
     // Create tabs
-    const tabsContainer = crelt('div')
-    Object.assign(tabsContainer.style, styles.tabsContainerStyles)
-
-    const tabsGroup = crelt('div')
-    Object.assign(tabsGroup.style, styles.tabsGroupStyles)
+    const tabsContainer = crelt('div', { class: 'cm-ext-assistant-tabs' })
+    const tabsGroup = crelt('div', { class: 'cm-ext-assistant-tabs-group' })
 
     const createTab = (label: string, id: 'assistant' | 'agent') => {
-        const tab = crelt('button', {}, label)
-        Object.assign(tab.style, styles.getTabStyles(state.activeTab === id))
+        const isActive = state.activeTab === id
+        const tab = crelt(
+            'button',
+            {
+                class: `cm-ext-assistant-tab${isActive ? ' cm-ext-assistant-tab-active' : ''}`,
+            },
+            label,
+        )
         tab.onclick = () => view.dispatch({ effects: switchTabEffect.of(id) })
         return tab
     }
@@ -65,12 +65,14 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     tabsGroup.appendChild(createTab('Agent', 'agent'))
 
     // Create right side controls container
-    const controlsContainer = crelt('div')
-    Object.assign(controlsContainer.style, styles.controlsContainerStyles)
+    const controlsContainer = crelt('div', {
+        class: 'cm-ext-assistant-controls',
+    })
 
     // Add model picker
-    const modelSelect = crelt('select') as HTMLSelectElement
-    Object.assign(modelSelect.style, styles.modelSelectStyles)
+    const modelSelect = crelt('select', {
+        class: 'cm-ext-assistant-model-select',
+    }) as HTMLSelectElement
 
     AVAILABLE_MODELS.forEach(model => {
         const option = crelt('option', { value: model.id }) as HTMLOptionElement
@@ -90,21 +92,23 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     })
 
     // Add settings button
-    const settingsButton = crelt('button', {}, '⚙️')
-    Object.assign(settingsButton.style, styles.settingsButtonStyles)
-
-    settingsButton.addEventListener('mouseover', () => {
-        settingsButton.style.opacity = '1'
-    })
-
-    settingsButton.addEventListener('mouseout', () => {
-        settingsButton.style.opacity = '0.7'
-    })
+    const settingsButton = crelt(
+        'button',
+        { class: 'cm-ext-assistant-settings-button' },
+        '⚙️',
+    )
 
     settingsButton.addEventListener('click', () => {
+        debug('Settings button clicked, dispatching toggleSettingsEffect(true)')
+        debug('State before dispatch:', view.state.field(assistantState))
         view.dispatch({
             effects: toggleSettingsEffect.of(true),
         })
+        debug('State after dispatch:', view.state.field(assistantState))
+        debug(
+            'showSettings value:',
+            view.state.field(assistantState).showSettings,
+        )
     })
 
     controlsContainer.appendChild(modelSelect)
@@ -114,13 +118,15 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     dom.appendChild(tabsContainer)
 
     // Add border right after tabs
-    const headerBorder = crelt('div')
-    Object.assign(headerBorder.style, styles.headerBorderStyles)
+    const headerBorder = crelt('div', {
+        class: 'cm-ext-assistant-header-border',
+    })
     dom.appendChild(headerBorder)
 
     // Create messages container
-    const messagesContainer = crelt('div')
-    Object.assign(messagesContainer.style, styles.messagesContainerStyles)
+    const messagesContainer = crelt('div', {
+        class: 'cm-ext-assistant-messages',
+    })
 
     // Helper function to scroll to bottom
     const scrollToBottom = () => {
@@ -134,9 +140,8 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     })
     dom.appendChild(messagesContainer)
 
-    // Create input area
-    const inputContainer = crelt('div')
-    Object.assign(inputContainer.style, styles.inputContainerStyles)
+    // Create input container
+    const inputContainer = crelt('div', { class: 'cm-ext-assistant-input' })
 
     const textarea = crelt('textarea', {
         placeholder: 'Ask anything, @ to mention, ↑ to select',
@@ -269,18 +274,6 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
             }
         },
     })
-    Object.assign(textarea.style, styles.textareaStyles)
-
-    // Add focus styles
-    textarea.addEventListener('focus', () => {
-        textarea.style.borderColor =
-            'var(--cm-border-color, rgba(255, 255, 255, 0.3))'
-    })
-
-    textarea.addEventListener('blur', () => {
-        textarea.style.borderColor =
-            'var(--cm-border-color, rgba(255, 255, 255, 0.1))'
-    })
 
     inputContainer.appendChild(textarea)
     dom.appendChild(inputContainer)
@@ -289,29 +282,24 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
 function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
     const state = view.state.field(assistantState)
     dom.innerHTML = ''
-
-    // Container styles
-    Object.assign(dom.style, styles.settingsPanelContainerStyles)
+    dom.className = 'cm-ext-assistant-settings'
 
     // Header container with back button
-    const headerContainer = crelt('div')
-    Object.assign(headerContainer.style, styles.tabsContainerStyles)
+    const headerContainer = crelt('div', { class: 'cm-ext-assistant-tabs' })
 
     // Header styled like a tab
-    const header = crelt('div', {}, 'API Key Settings')
-    Object.assign(header.style, styles.settingsHeaderStyles)
+    const header = crelt(
+        'div',
+        { class: 'cm-ext-assistant-settings-header' },
+        'API Key Settings',
+    )
 
     // Back button in header
-    const backButton = crelt('button', {}, '←')
-    Object.assign(backButton.style, styles.settingsButtonStyles)
-
-    backButton.addEventListener('mouseover', () => {
-        backButton.style.opacity = '1'
-    })
-
-    backButton.addEventListener('mouseout', () => {
-        backButton.style.opacity = '0.7'
-    })
+    const backButton = crelt(
+        'button',
+        { class: 'cm-ext-assistant-settings-button' },
+        '←',
+    )
 
     backButton.addEventListener('click', () => {
         view.dispatch({
@@ -324,90 +312,75 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
     dom.appendChild(headerContainer)
 
     // Add border right after header
-    const headerBorder = crelt('div')
-    Object.assign(headerBorder.style, styles.headerBorderStyles)
+    const headerBorder = crelt('div', {
+        class: 'cm-ext-assistant-header-border',
+    })
     dom.appendChild(headerBorder)
 
-    // Description with adjusted margins
+    // Description
     const description = crelt(
         'div',
-        {},
+        { class: 'cm-ext-assistant-settings-description' },
         'Keys are stored locally and never transmitted',
     )
-    Object.assign(description.style, styles.settingsDescriptionStyles)
     dom.appendChild(description)
 
     // API Key inputs for each provider
-    const inputsContainer = crelt('div')
-    Object.assign(inputsContainer.style, styles.settingsInputsContainerStyles)
+    const inputsContainer = crelt('div', {
+        class: 'cm-ext-assistant-settings-inputs',
+    })
 
     AVAILABLE_MODELS.forEach(model => {
-        const container = crelt('div')
-        Object.assign(container.style, {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '2px',
-        })
+        // Create provider container first
+        const container = crelt('div', { class: 'cm-ext-assistant-provider' })
 
-        const label = crelt('label', {}, formatProviderName(model.provider))
-        Object.assign(label.style, styles.providerHeaderStyles)
-
-        const contentContainer = crelt('div')
-        Object.assign(contentContainer.style, styles.providerContentStyles)
-
-        const resetButton = crelt('button', {}, 'Reset key')
-        Object.assign(resetButton.style, {
-            ...styles.settingsButtonStyles,
-            display: state.apiKeys[model.provider] ? 'block' : 'none',
-            whiteSpace: 'nowrap',
-            minWidth: 'fit-content',
-        })
-
-        resetButton.addEventListener('mouseover', () => {
-            resetButton.style.opacity = '1'
-        })
-
-        resetButton.addEventListener('mouseout', () => {
-            resetButton.style.opacity = '0.7'
-        })
-
-        resetButton.addEventListener('click', () => {
-            input.value = ''
-            view.dispatch({
-                effects: setApiKeyEffect.of({
-                    provider: model.provider,
-                    key: '',
-                }),
-            })
-        })
-
-        label.appendChild(resetButton)
-
-        const messageContainer = crelt('div')
-        Object.assign(
-            messageContainer.style,
-            styles.settingsMessageContainerStyles(
-                !!state.apiKeys[model.provider],
-            ),
+        // Create header inside the provider container
+        const label = crelt(
+            'div',
+            { class: 'cm-ext-assistant-provider-header' },
+            formatProviderName(model.provider),
         )
+        container.appendChild(label)
+
+        const messageContainer = crelt('div', {
+            class:
+                'cm-ext-assistant-provider-message' +
+                (state.apiKeys[model.provider] ? ' has-api-key' : ''),
+        })
 
         if (state.apiKeys[model.provider]) {
-            const checkmark = crelt('span', {}, '✓')
-            Object.assign(checkmark.style, {
-                color: 'var(--cm-success-color, #4caf50)',
-                marginRight: '4px',
-            })
+            const checkmark = crelt('span', { class: 'checkmark' }, '✓')
             messageContainer.appendChild(checkmark)
             messageContainer.appendChild(
                 document.createTextNode('API key configured.'),
             )
+
+            const resetButton = crelt(
+                'button',
+                { class: 'cm-ext-assistant-settings-button' },
+                'Reset key',
+            )
+
+            resetButton.addEventListener('click', () => {
+                input.value = ''
+                view.dispatch({
+                    effects: setApiKeyEffect.of({
+                        provider: model.provider,
+                        key: '',
+                    }),
+                })
+                messageContainer.classList.remove('has-api-key')
+                inputGroup.classList.remove('has-api-key')
+            })
+
+            messageContainer.appendChild(resetButton)
         }
 
-        const inputGroup = crelt('div')
-        Object.assign(
-            inputGroup.style,
-            styles.getSettingsInputStyles(!!state.apiKeys[model.provider]),
-        )
+        const inputGroup = crelt('div', {
+            class:
+                'cm-ext-assistant-provider-input' +
+                (state.apiKeys[model.provider] ? ' has-api-key' : ''),
+        })
 
         const input = crelt('input', {
             type: 'password',
@@ -419,8 +392,6 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
                       ? 'sk-000000000000000000000000000000000000000000000000'
                       : 'ottggm...',
         }) as HTMLInputElement
-
-        Object.assign(input.style, styles.settingsInputFieldStyles)
 
         // Only update state on blur or enter key
         input.addEventListener('keydown', e => {
@@ -453,11 +424,10 @@ function renderSettingsPanel(dom: HTMLElement, view: EditorView) {
         })
 
         inputGroup.appendChild(input)
-        contentContainer.appendChild(messageContainer)
-        contentContainer.appendChild(inputGroup)
+        container.appendChild(messageContainer)
+        container.appendChild(inputGroup)
 
-        container.appendChild(label)
-        container.appendChild(contentContainer)
+        // Only append the container to inputs container
         inputsContainer.appendChild(container)
     })
 
@@ -471,26 +441,27 @@ export function renderMessage(
 ) {
     // Add loading spinner before the message if it's streaming and empty
     if (message.status === 'streaming' && !message.content) {
-        const loadingContainer = crelt('div')
-        Object.assign(loadingContainer.style, styles.loadingContainerStyles)
-
-        const spinner = crelt('div')
-        Object.assign(spinner.style, styles.spinnerStyles)
-
+        const loadingContainer = crelt('div', {
+            class: 'cm-ext-assistant-loading',
+        })
+        const spinner = crelt('div', { class: 'cm-ext-assistant-spinner' })
         loadingContainer.appendChild(spinner)
         container.appendChild(loadingContainer)
     }
 
     // Only show message if it has content or is not streaming
     if (message.content || message.status !== 'streaming') {
-        const messageEl = crelt('div')
-        Object.assign(
-            messageEl.style,
-            styles.getMessageStyles(message.role === 'user'),
-        )
+        const messageEl = crelt('div', {
+            class: `cm-ext-assistant-message ${
+                message.role === 'user'
+                    ? 'cm-ext-assistant-message-user'
+                    : 'cm-ext-assistant-message-bot'
+            }`,
+        })
 
-        const contentEl = crelt('div')
-        Object.assign(contentEl.style, styles.messageContentStyles)
+        const contentEl = crelt('div', {
+            class: 'cm-ext-assistant-message-content',
+        })
 
         // First, find all complete code blocks and their positions
         const codeBlocks = parseCodeBlocks(message.content)
@@ -566,12 +537,9 @@ export function renderMessage(
         // Process each segment
         segments.forEach(segment => {
             if (segment.type === 'code' || segment.type === 'incomplete-code') {
-                const codeBlockContainer = crelt('div')
-                Object.assign(
-                    codeBlockContainer.style,
-                    styles.codeBlockContainerStyles,
-                )
-
+                const codeBlockContainer = crelt('div', {
+                    class: 'cm-ext-assistant-code',
+                })
                 const widget = new CodeBlockWidget(
                     segment.type === 'code' ? segment.content : '',
                     segment.language || null,
@@ -581,13 +549,14 @@ export function renderMessage(
                 contentEl.appendChild(codeBlockContainer)
             } else if (segment.type === 'text') {
                 // Process text segment for inline code
-                const textContainer = crelt('div')
-                Object.assign(textContainer.style, styles.textContainerStyles)
+                const textContainer = crelt('div', {
+                    class: 'cm-ext-assistant-text-container',
+                })
                 const inlineCodeRegex = /(?<!`)`([^`]+)`(?!`)/g
                 const processedText = segment.content.replace(
                     inlineCodeRegex,
                     (_, code) =>
-                        `<code style="${styles.inlineCodeStyles}">${code}</code>`,
+                        `<code class="cm-ext-assistant-inline-code">${code}</code>`,
                 )
                 textContainer.innerHTML = processedText
                 contentEl.appendChild(textContainer)
