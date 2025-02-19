@@ -84,7 +84,15 @@ const assistantPanelSpec: SidebarPanelSpec = {
         }
     },
     onVisibilityChange(view, visible) {
+        // Set the CSS variable for assistant width
+        const root = view.dom
         if (visible) {
+            // Get the panel width from the DOM element's style
+            const panel = view.dom.querySelector(
+                '.cm-sidebar-panel-container[data-dock="right"]',
+            ) as HTMLElement
+            const width = panel ? panel.style.width || '400px' : '400px'
+            root.style.setProperty('--assistant-width', width)
             // Focus the input when panel becomes visible
             requestIdleCallback(() => {
                 const textareas = view.dom.getElementsByTagName('textarea')
@@ -92,6 +100,8 @@ const assistantPanelSpec: SidebarPanelSpec = {
                     textareas[0].focus()
                 }
             })
+        } else {
+            root.style.setProperty('--assistant-width', '0px')
         }
     },
 }

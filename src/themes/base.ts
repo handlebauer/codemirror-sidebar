@@ -14,6 +14,7 @@ export const baseTheme = EditorView.theme({
         height: '100vh',
         display: 'flex !important',
         flexDirection: 'row !important',
+        position: 'relative',
     },
     '.cm-scroller': {
         background: 'var(--cm-editor-background, #23272d)',
@@ -21,7 +22,9 @@ export const baseTheme = EditorView.theme({
         overflowX: 'auto',
         flex: '1 1 auto !important',
         minWidth: '0 !important',
-        position: 'relative',
+        position: 'absolute',
+        width: 'calc(100% - var(--assistant-width, 0px))',
+        right: 'var(--assistant-width, 0px)',
         '&::-webkit-scrollbar': {
             width: '20px',
             height: '14px',
@@ -36,6 +39,14 @@ export const baseTheme = EditorView.theme({
         },
         '&::-webkit-scrollbar-thumb:hover': {
             background: 'var(--cm-scrollbar-thumb-hover, #555b63)',
+        },
+        '&:after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            height: 'calc(100% + 20%)',
+            width: '1px',
+            visibility: 'hidden',
         },
     },
     '.cm-content': {
@@ -106,6 +117,9 @@ export interface ThemeVariables {
     '--cm-sidebar-border': string
     '--cm-resize-handle-hover': string
     '--cm-resize-handle-active': string
+
+    // Assistant
+    '--assistant-width'?: string
 }
 
 // Default dark theme variables
@@ -126,6 +140,8 @@ export const darkThemeVariables: ThemeVariables = {
     '--cm-sidebar-border': '0.5px solid rgba(255, 255, 255, 0.2)',
     '--cm-resize-handle-hover': 'rgba(255, 255, 255, 0.1)',
     '--cm-resize-handle-active': 'rgba(255, 255, 255, 0.1)',
+
+    '--assistant-width': '0px',
 }
 
 // Helper to create a theme with variables

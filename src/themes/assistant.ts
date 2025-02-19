@@ -25,6 +25,7 @@ export interface AssistantThemeVariables {
     '--cm-ext-assistant-bg-selected': string
     '--cm-ext-assistant-accent': string
     '--cm-ext-assistant-bg-code': string
+    '--cm-ext-assistant-border-focus': string
 
     // Typography
     '--cm-ext-assistant-font': string
@@ -47,6 +48,7 @@ export const assistantThemeVariables: AssistantThemeVariables = {
     '--cm-ext-assistant-bg-selected': 'rgba(255, 255, 255, 0.03)',
     '--cm-ext-assistant-accent': 'rgba(74, 158, 255, 0.2)',
     '--cm-ext-assistant-bg-code': '#1e1e1e',
+    '--cm-ext-assistant-border-focus': 'rgba(255, 255, 255, 0.3)',
 
     // Typography
     '--cm-ext-assistant-font': 'system-ui, -apple-system, sans-serif',
