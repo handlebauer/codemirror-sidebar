@@ -158,10 +158,20 @@ export const assistantTheme: ExtensionTheme = {
             },
             '&.cm-ext-assistant-message-bot': {
                 alignSelf: 'flex-start',
-                width: 'calc(100% - 10px)',
+                width: '98%',
+                maxWidth: '98%',
                 background: 'var(--cm-ext-assistant-bg-message)',
                 color: 'var(--cm-ext-assistant-text)',
             },
+        },
+        '.cm-ext-assistant-message-content': {
+            whiteSpace: 'pre-wrap',
+            lineHeight: '1.2',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0',
+            width: '100%',
+            boxSizing: 'border-box',
         },
 
         // Code blocks
@@ -501,13 +511,6 @@ export const assistantTheme: ExtensionTheme = {
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-        },
-        '.cm-ext-assistant-message-content': {
-            whiteSpace: 'pre-wrap',
-            lineHeight: '1.2',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0',
         },
 
         // Code Block Editor Theme
