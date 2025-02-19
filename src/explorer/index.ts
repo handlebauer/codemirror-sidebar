@@ -3,6 +3,8 @@ import { EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
 import { type DockPosition } from '../sidebar'
 import { createSidebar, sidebarPanel, toggleSidebarCommand } from '../sidebar'
 import { createSidebarKeymap } from '../sidebar/keymap'
+import { Facet } from '@codemirror/state'
+import logger from '../utils/logger'
 import {
     fileExplorerState,
     fileExplorerPanelSpec,
@@ -13,31 +15,90 @@ import {
     selectFileEffect,
 } from './state'
 
-// Global keymap handler for sidebars
-const globalKeymapHandlers = new Map<string, (view: EditorView) => boolean>()
+const debug = (...args: unknown[]) => logger.debug('[Explorer]', ...args)
 
-// Initialize global keymap listener
-if (typeof window !== 'undefined') {
-    window.addEventListener('keydown', event => {
-        const isMac = /Mac/.test(navigator.platform)
+/**
+ * Handles keyboard shortcuts for the explorer panel
+ */
+function setupPanelKeyboardShortcuts(
+    dom: HTMLElement,
+    view: EditorView,
+    keyConfig: string | { mac?: string; win?: string },
+) {
+    const isMac = /Mac/.test(navigator.platform)
+
+    // Convert keyConfig to normalized format
+    const keys =
+        typeof keyConfig === 'string'
+            ? { mac: keyConfig, win: keyConfig }
+            : keyConfig
+
+    // Create key matcher based on platform
+    const targetKey = (isMac ? keys.mac : keys.win)?.toLowerCase()
+    if (!targetKey) return
+
+    debug('Setting up panel keyboard shortcuts:', { isMac, targetKey })
+
+    // Add keyboard event listener to the panel
+    dom.addEventListener('keydown', (event: KeyboardEvent) => {
         const modKey = isMac ? event.metaKey : event.ctrlKey
         if (!modKey) return
 
-        const key = `${isMac ? 'Cmd' : 'Ctrl'}-${event.key.toLowerCase()}`
-        const handler = globalKeymapHandlers.get(key)
-        if (handler) {
-            const editorElement = document.querySelector(
-                '.cm-editor',
-            ) as HTMLElement
-            if (editorElement) {
-                const view = EditorView.findFromDOM(editorElement)
-                if (view) {
-                    event.preventDefault()
-                    handler(view)
-                }
-            }
+        const pressedKey = `${isMac ? 'cmd' : 'ctrl'}-${event.key.toLowerCase()}`
+        debug('Key pressed in panel:', pressedKey)
+
+        if (pressedKey === targetKey) {
+            event.preventDefault()
+            event.stopPropagation()
+            debug('Executing panel keyboard shortcut:', targetKey)
+            toggleSidebarCommand(view, 'file-explorer')
         }
     })
+}
+
+// Store keymap config in a facet
+const explorerKeymap = Facet.define<
+    string | { mac?: string; win?: string },
+    string | { mac?: string; win?: string }
+>({
+    combine: values => values[0], // Just use the first value since we only set it once
+})
+
+// Create a ViewPlugin to handle file selection callbacks
+function createFileSelectPlugin(
+    onFileSelect?: (filename: string, view: EditorView) => void,
+) {
+    return ViewPlugin.fromClass(
+        class {
+            update(update: ViewUpdate) {
+                if (!onFileSelect) return
+
+                for (const effect of update.transactions.flatMap(
+                    tr => tr.effects,
+                )) {
+                    if (effect.is(selectFileEffect)) {
+                        onFileSelect(effect.value, update.view)
+                    }
+                }
+            }
+        },
+    )
+}
+
+// Modify the panel spec to include keymap handling
+const modifiedFileExplorerPanelSpec = {
+    ...fileExplorerPanelSpec,
+    create(view: EditorView) {
+        const dom = fileExplorerPanelSpec.create(view)
+
+        // Get keymap config from options
+        const keymapOpt = view.state.facet(explorerKeymap)
+        if (keymapOpt) {
+            setupPanelKeyboardShortcuts(dom, view, keymapOpt)
+        }
+
+        return dom
+    },
 }
 
 export interface ExplorerOptions {
@@ -81,27 +142,6 @@ export interface ExplorerOptions {
     onFileSelect?: (filename: string, view: EditorView) => void
 }
 
-// Create a ViewPlugin to handle file selection callbacks
-function createFileSelectPlugin(
-    onFileSelect?: (filename: string, view: EditorView) => void,
-) {
-    return ViewPlugin.fromClass(
-        class {
-            update(update: ViewUpdate) {
-                if (!onFileSelect) return
-
-                for (const effect of update.transactions.flatMap(
-                    tr => tr.effects,
-                )) {
-                    if (effect.is(selectFileEffect)) {
-                        onFileSelect(effect.value, update.view)
-                    }
-                }
-            }
-        },
-    )
-}
-
 /**
  * Creates a file explorer extension for CodeMirror
  */
@@ -111,7 +151,7 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         width = '250px',
         overlay = false,
         backgroundColor = '#2c313a',
-        keymap,
+        keymap: keymapOpt,
         initiallyOpen = false,
         onFileSelect,
     } = options
@@ -126,34 +166,17 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         initialPanelId: 'file-explorer',
     }
 
-    // Register keymap handlers if configured
-    if (keymap) {
-        if (typeof keymap === 'string') {
-            globalKeymapHandlers.set(keymap, view =>
-                toggleSidebarCommand(view, 'file-explorer'),
-            )
-        } else {
-            if (keymap.mac) {
-                globalKeymapHandlers.set(keymap.mac, view =>
-                    toggleSidebarCommand(view, 'file-explorer'),
-                )
-            }
-            if (keymap.win) {
-                globalKeymapHandlers.set(keymap.win, view =>
-                    toggleSidebarCommand(view, 'file-explorer'),
-                )
-            }
-        }
-    }
-
     return [
         ...createSidebar(sidebarOptions),
         fileExplorerState,
         fileExplorerPlugin,
-        sidebarPanel.of(fileExplorerPanelSpec),
+        sidebarPanel.of(modifiedFileExplorerPanelSpec),
         languageCompartment.of([]), // Initialize language compartment with empty configuration
         onFileSelect ? createFileSelectPlugin(onFileSelect) : [],
-        createSidebarKeymap('file-explorer', keymap),
+        // Store keymap config in facet
+        keymapOpt ? explorerKeymap.of(keymapOpt) : [],
+        // Add editor keymap
+        createSidebarKeymap('file-explorer', keymapOpt),
     ]
 }
 
