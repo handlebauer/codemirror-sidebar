@@ -211,7 +211,7 @@ function renderFileNode(
     view: EditorView,
     selectedFile: string | null,
 ) {
-    const indentation = 10 + level * 8
+    const indentation = 5 + level * 8
     const explorerState = view.state.field(fileExplorerState)
 
     if (node.isDirectory) {
@@ -252,6 +252,7 @@ function renderFileNode(
             )
         }
     } else {
+        const iconSpan = crelt('span', { class: styles.explorerIcon }, '')
         const fileSpan = crelt(
             'span',
             { class: styles.explorerFile },
@@ -261,7 +262,7 @@ function renderFileNode(
             'li',
             {
                 'data-file': node.path,
-                class: `${styles.explorerItem}${
+                class: `${styles.explorerItem} ${styles.explorerFileItem}${
                     node.path === selectedFile
                         ? ` ${styles.explorerItemSelected}`
                         : ''
@@ -291,6 +292,7 @@ function renderFileNode(
                     }
                 },
             },
+            iconSpan,
             fileSpan,
         )
         container.appendChild(fileItem)

@@ -13,7 +13,7 @@ const message = greet('World')
 console.log(message)`,
     },
     {
-        name: 'config.ts',
+        name: 'src/config.ts',
         content: `// Configuration file
 export const config = {
     appName: 'Demo App',

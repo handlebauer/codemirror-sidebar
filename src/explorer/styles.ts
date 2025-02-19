@@ -8,10 +8,12 @@ export const styles = {
     explorerDirectory: 'cm-ext-explorer-directory',
     explorerDirectoryItem: 'cm-ext-explorer-directory-item',
     explorerFile: 'cm-ext-explorer-file',
+    explorerFileItem: 'cm-ext-explorer-file-item',
     explorerItemSelected: 'cm-ext-explorer-item-selected',
     directoryCaret: 'cm-ext-explorer-caret',
     directoryCaretExpanded: 'cm-ext-explorer-caret-expanded',
     explorerHeader: 'cm-ext-explorer-header',
+    explorerIcon: 'cm-ext-explorer-icon',
 }
 
 // Default behavioral options

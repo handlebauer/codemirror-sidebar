@@ -35,7 +35,7 @@ export interface ExplorerThemeVariables {
 // Default explorer theme variables
 export const explorerThemeVariables: ExplorerThemeVariables = {
     // Colors
-    '--cm-ext-explorer-text': '#e1e1e3',
+    '--cm-ext-explorer-text': 'rgb(197, 197, 199)',
     '--cm-ext-explorer-text-header': '#b1b1b3',
     '--cm-ext-explorer-border': '#2c313a',
     '--cm-ext-explorer-bg-hover': 'rgba(255, 255, 255, 0.05)',
@@ -43,11 +43,11 @@ export const explorerThemeVariables: ExplorerThemeVariables = {
     '--cm-ext-explorer-border-selected': 'rgba(255, 255, 255, 0.1)',
 
     // Typography
-    '--cm-ext-explorer-font-size': '14px',
-    '--cm-ext-explorer-font-weight': '500',
-    '--cm-ext-explorer-header-font-size': '13px',
+    '--cm-ext-explorer-header-font-size': '11px',
     '--cm-ext-explorer-header-font-weight': '800',
     '--cm-ext-explorer-header-letter-spacing': '0.5px',
+    '--cm-ext-explorer-font-size': '12px',
+    '--cm-ext-explorer-font-weight': '500',
 }
 
 /**
@@ -93,7 +93,7 @@ export const explorerTheme: ExtensionTheme = {
             border: '1px solid var(--cm-ext-explorer-border)',
             display: 'flex',
             alignItems: 'center',
-            padding: '4px 8px',
+            padding: '2.5px 8px',
             cursor: 'pointer',
             transition: 'background-color 0.2s',
             color: 'var(--cm-ext-explorer-text)',
@@ -111,16 +111,17 @@ export const explorerTheme: ExtensionTheme = {
         },
 
         '.cm-ext-explorer-directory-item': {
-            padding: '1.5px 0',
+            userSelect: 'none',
             display: 'flex',
             alignItems: 'center',
+            gap: '4px',
         },
 
         '.cm-ext-explorer-caret': {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '8px',
+            width: '16px',
             height: '16px',
             lineHeight: '16px',
             textAlign: 'center',
@@ -129,6 +130,7 @@ export const explorerTheme: ExtensionTheme = {
             opacity: '0.6',
             transform: 'rotate(0deg)',
             transition: 'transform 0.15s ease',
+            flexShrink: 0,
 
             '&.cm-ext-explorer-caret-expanded': {
                 transform: 'rotate(90deg)',
@@ -141,21 +143,37 @@ export const explorerTheme: ExtensionTheme = {
             fontSize: 'var(--cm-ext-explorer-header-font-size)',
             fontWeight: 'var(--cm-ext-explorer-header-font-weight)',
             margin: '0',
-            padding: '4px 8px 3px',
+            padding: '4px 8px 3px 10px',
             letterSpacing: 'var(--cm-ext-explorer-header-letter-spacing)',
             color: 'var(--cm-ext-explorer-text-header)',
         },
 
         '.cm-ext-explorer-directory span': {
-            marginLeft: '4px',
             userSelect: 'none',
             display: 'flex',
             alignItems: 'center',
+            marginLeft: '16px',
         },
 
-        '.cm-ext-explorer-file span': {
+        '.cm-ext-explorer-file': {
+            display: 'flex',
+            alignItems: 'center',
             userSelect: 'none',
-            marginLeft: '12px',
+        },
+
+        '.cm-ext-explorer-file-item': {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+        },
+
+        '.cm-ext-explorer-icon': {
+            width: '16px',
+            height: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
         },
     }),
 }
