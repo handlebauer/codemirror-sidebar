@@ -6,6 +6,12 @@ import { createSidebarKeymap } from '../sidebar/keymap'
 import { Facet } from '@codemirror/state'
 import logger from '../utils/logger'
 import {
+    explorerTheme,
+    explorerThemeVariables,
+    type ExplorerThemeVariables,
+} from '../themes/explorer'
+import { defaultExplorerOptions } from './styles'
+import {
     fileExplorerState,
     fileExplorerPanelSpec,
     type File,
@@ -16,6 +22,14 @@ import {
 } from './state'
 
 const debug = (...args: unknown[]) => logger.debug('[Explorer]', ...args)
+
+// Store keymap config in a facet
+const explorerKeymap = Facet.define<
+    string | { mac?: string; win?: string },
+    string | { mac?: string; win?: string }
+>({
+    combine: values => values[0], // Just use the first value since we only set it once
+})
 
 /**
  * Handles keyboard shortcuts for the explorer panel
@@ -56,14 +70,6 @@ function setupPanelKeyboardShortcuts(
     })
 }
 
-// Store keymap config in a facet
-const explorerKeymap = Facet.define<
-    string | { mac?: string; win?: string },
-    string | { mac?: string; win?: string }
->({
-    combine: values => values[0], // Just use the first value since we only set it once
-})
-
 // Create a ViewPlugin to handle file selection callbacks
 function createFileSelectPlugin(
     onFileSelect?: (filename: string, view: EditorView) => void,
@@ -85,8 +91,8 @@ function createFileSelectPlugin(
     )
 }
 
-// Modify the panel spec to include keymap handling
-const modifiedFileExplorerPanelSpec = {
+// Create the panel spec with keymap handling
+const explorerPanelSpec = {
     ...fileExplorerPanelSpec,
     create(view: EditorView) {
         const dom = fileExplorerPanelSpec.create(view)
@@ -103,7 +109,7 @@ const modifiedFileExplorerPanelSpec = {
 
 export interface ExplorerOptions {
     /**
-     * Which side to dock the explorer on
+     * Which side to dock the explorer panel on
      * @default 'left'
      */
     dock?: DockPosition
@@ -113,14 +119,7 @@ export interface ExplorerOptions {
      */
     width?: string
     /**
-     * Keyboard shortcut to toggle the explorer
-     * Can be a string for same shortcut on all platforms
-     * or an object for platform-specific shortcuts
-     * @example 'Cmd-e' or { mac: 'Cmd-e', win: 'Ctrl-e' }
-     */
-    keymap?: string | { mac: string; win: string }
-    /**
-     * Whether to show the explorer as an overlay
+     * Whether to show the explorer panel as an overlay
      * @default false
      */
     overlay?: boolean
@@ -130,16 +129,23 @@ export interface ExplorerOptions {
      */
     backgroundColor?: string
     /**
-     * Whether the explorer should be open by default
+     * Keyboard shortcut to toggle the explorer panel
+     * @example 'Cmd-b' or { mac: 'Cmd-b', win: 'Ctrl-b' }
+     */
+    keymap?: string | { mac?: string; win?: string }
+    /**
+     * Whether to open the explorer panel by default
      * @default false
      */
     initiallyOpen?: boolean
     /**
-     * Callback function that is called when a file is selected
-     * @param filename The name/path of the selected file
-     * @param view The current editor view
+     * Callback when a file is selected
      */
     onFileSelect?: (filename: string, view: EditorView) => void
+    /**
+     * Theme for the explorer
+     */
+    theme?: Partial<ExplorerThemeVariables>
 }
 
 /**
@@ -147,13 +153,14 @@ export interface ExplorerOptions {
  */
 export function explorer(options: ExplorerOptions = {}): Extension[] {
     const {
-        dock = 'left',
-        width = '250px',
-        overlay = false,
-        backgroundColor = '#2c313a',
+        dock = defaultExplorerOptions.dock as DockPosition,
+        width = defaultExplorerOptions.width,
+        overlay = defaultExplorerOptions.overlay,
+        backgroundColor = defaultExplorerOptions.backgroundColor,
         keymap: keymapOpt,
-        initiallyOpen = false,
+        initiallyOpen = defaultExplorerOptions.initiallyOpen,
         onFileSelect,
+        theme = {},
     } = options
 
     const sidebarOptions = {
@@ -164,27 +171,28 @@ export function explorer(options: ExplorerOptions = {}): Extension[] {
         backgroundColor,
         initiallyOpen,
         initialPanelId: 'file-explorer',
+        theme,
     }
 
     return [
         ...createSidebar(sidebarOptions),
         fileExplorerState,
         fileExplorerPlugin,
-        sidebarPanel.of(modifiedFileExplorerPanelSpec),
-        languageCompartment.of([]), // Initialize language compartment with empty configuration
+        sidebarPanel.of(explorerPanelSpec),
+        languageCompartment.of([]),
         onFileSelect ? createFileSelectPlugin(onFileSelect) : [],
-        // Store keymap config in facet
         keymapOpt ? explorerKeymap.of(keymapOpt) : [],
-        // Add editor keymap
         createSidebarKeymap('file-explorer', keymapOpt),
+        explorerTheme.theme,
     ]
 }
 
 // Export types and effects for external use
-export type { File }
+export type { File, ExplorerThemeVariables }
 export {
     updateFilesEffect,
     selectFileEffect,
     setProjectNameEffect,
 } from './state'
 export { toggleExplorer } from './commands'
+export { explorerThemeVariables }

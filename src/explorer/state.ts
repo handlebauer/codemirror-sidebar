@@ -5,7 +5,7 @@ import { python } from '@codemirror/lang-python'
 import { markdown } from '@codemirror/lang-markdown'
 import { json } from '@codemirror/lang-json'
 import crelt from 'crelt'
-import { styles, inlineStyles } from './styles'
+import { styles } from './styles'
 import logger from '../utils/logger'
 
 // Add debug logging helper
@@ -121,18 +121,10 @@ function renderFileExplorer(dom: HTMLElement, view: EditorView) {
     const explorerState = view.state.field(fileExplorerState)
     const header = crelt(
         'h3',
-        {
-            class: 'cm-explorer-header',
-            style: inlineStyles.header,
-        },
+        { class: styles.explorerHeader },
         explorerState.projectName || 'Files',
     )
-    const fileList = crelt('ul', {
-        class: styles.explorerList,
-        style: Object.entries(inlineStyles.list)
-            .map(([k, v]) => `${k}:${v}`)
-            .join(';'),
-    })
+    const fileList = crelt('ul', { class: styles.explorerList })
 
     // Build and render file tree
     const fileTree = buildFileTree(explorerState.files)
@@ -227,17 +219,15 @@ function renderFileNode(
         const caretSpan = crelt(
             'span',
             {
-                class: `${styles.directoryCaret}${isExpanded ? ` ${styles.directoryCaretExpanded}` : ''}`,
-                style: `${inlineStyles.caret}${isExpanded ? `; ${inlineStyles.caretExpanded}` : ''}`,
+                class: `${styles.directoryCaret}${
+                    isExpanded ? ` ${styles.directoryCaretExpanded}` : ''
+                }`,
             },
             '›',
         )
         const dirSpan = crelt(
             'span',
-            {
-                class: styles.explorerDirectory,
-                style: inlineStyles.directorySpan,
-            },
+            { class: styles.explorerDirectory },
             node.name,
         )
         const dirItem = crelt(
@@ -264,10 +254,7 @@ function renderFileNode(
     } else {
         const fileSpan = crelt(
             'span',
-            {
-                class: styles.explorerFile,
-                style: inlineStyles.fileSpan,
-            },
+            { class: styles.explorerFile },
             node.name,
         )
         const fileItem = crelt(

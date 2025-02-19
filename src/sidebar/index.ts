@@ -6,7 +6,8 @@ import {
     type Extension,
 } from '@codemirror/state'
 import crelt from 'crelt'
-import { styles, inlineStyles, defaultSidebarOptions } from './styles'
+import { styles, defaultSidebarOptions } from './styles'
+import { sidebarTheme, sidebarThemeVariables } from '../themes/sidebar'
 import logger from '../utils/logger'
 
 // -- TYPES ---------------------------------------------------------------
@@ -104,20 +105,40 @@ const toggleSidebarCommand = (view: EditorView, sidebarId: string) => {
     }
 
     const state = view.state.field(stateField)
+    const newVisible = !state.visible
     debug(
         'Toggling sidebar:',
         sidebarId,
         'from:',
         state.visible,
         'to:',
-        !state.visible,
+        newVisible,
     )
-    view.dispatch({
-        effects: toggleSidebarEffect.of({
+
+    // When opening the sidebar, ensure we have an active panel
+    const effects: StateEffect<unknown>[] = [
+        toggleSidebarEffect.of({
             id: sidebarId,
-            visible: !state.visible,
+            visible: newVisible,
         }),
-    })
+    ]
+
+    // If we're opening the sidebar and there's no active panel,
+    // set the panel matching this sidebar's ID as active
+    if (newVisible && !state.activePanelId) {
+        const panels = view.state.facet(sidebarPanel)
+        const panel = panels.find(p => p.id === sidebarId)
+        if (panel) {
+            effects.push(
+                setActivePanelEffect.of({
+                    id: sidebarId,
+                    panelId: panel.id,
+                }),
+            )
+        }
+    }
+
+    view.dispatch({ effects })
     return true
 }
 
@@ -137,26 +158,32 @@ const createSidebarPlugin = (id: string) =>
             isDragging: boolean = false
 
             constructor(view: EditorView) {
-                this.dom = this.createSidebarDOM()
+                this.dom = crelt('div', {
+                    class: styles.sidebar,
+                    'data-sidebar-id': id,
+                })
                 this.panelContainer = crelt('div', {
                     class: styles.panelContainer,
-                    'data-dock':
-                        view.state.field(sidebarStates.get(id)!).options.dock ||
-                        'left',
                 })
-                this.resizeHandle = this.createResizeHandle()
+                this.resizeHandle = crelt('div', {
+                    class: styles.resizeHandle,
+                })
+
                 this.dom.appendChild(this.resizeHandle)
                 this.dom.appendChild(this.panelContainer)
 
                 // Apply styles before adding to DOM to prevent flash of visible content
                 const stateField = sidebarStates.get(id)!
                 const state = view.state.field(stateField)
-                this.applySidebarStyles(state.options, state.visible)
+                this.applySidebarStyles(state.options)
                 this.updateVisibility(state.visible)
 
                 view.dom.appendChild(this.dom)
                 view.dom.style.position = 'relative'
                 this.renderActivePanel(view, state)
+
+                // Set up resize handle
+                this.setupResizeHandle()
             }
 
             update(update: ViewUpdate) {
@@ -166,7 +193,7 @@ const createSidebarPlugin = (id: string) =>
 
                 if (state.visible !== oldState.visible) {
                     debug('Visibility changed:', id, state.visible)
-                    this.applySidebarStyles(state.options, state.visible)
+                    this.applySidebarStyles(state.options)
                     this.updateVisibility(state.visible)
 
                     // If sidebar is being hidden, return focus to editor
@@ -176,7 +203,7 @@ const createSidebarPlugin = (id: string) =>
                 }
                 if (state.options !== oldState.options) {
                     debug('Options changed:', id, state.options)
-                    this.applySidebarStyles(state.options, state.visible)
+                    this.applySidebarStyles(state.options)
                 }
                 if (state.activePanelId !== oldState.activePanelId) {
                     debug('Active panel changed:', id, state.activePanelId)
@@ -189,28 +216,11 @@ const createSidebarPlugin = (id: string) =>
                 this.dom.remove()
             }
 
-            private createSidebarDOM(): HTMLElement {
-                return crelt('div', {
-                    class: styles.sidebar,
-                    'data-sidebar-id': id,
-                })
-            }
-
             private updateVisibility(visible: boolean) {
-                Object.assign(
-                    this.dom.style,
-                    visible ? {} : inlineStyles.sidebar.hidden,
-                )
+                this.dom.setAttribute('data-visible', visible.toString())
             }
 
-            private createResizeHandle(): HTMLElement {
-                const handle = crelt('div', {
-                    class: styles.resizeHandle,
-                })
-
-                // Set up resize handle styles
-                Object.assign(handle.style, inlineStyles.resizeHandle)
-
+            private setupResizeHandle() {
                 const startDragging = (e: MouseEvent) => {
                     e.preventDefault()
                     this.isDragging = true
@@ -220,14 +230,13 @@ const createSidebarPlugin = (id: string) =>
                     // Add event listeners for dragging
                     document.addEventListener('mousemove', onDrag)
                     document.addEventListener('mouseup', stopDragging)
-                    Object.assign(document.body.style, inlineStyles.dragging)
+                    document.body.classList.add('cm-ext-sidebar-dragging')
                 }
 
                 const onDrag = (e: MouseEvent) => {
                     if (!this.isDragging) return
 
                     const stateField = sidebarStates.get(id)!
-                    // Find the EditorView instance
                     const editorElement = this.dom.closest(
                         '.cm-editor',
                     ) as HTMLElement
@@ -243,156 +252,123 @@ const createSidebarPlugin = (id: string) =>
                             : this.initialWidth - delta
 
                     // Enforce minimum and maximum width
-                    newWidth = Math.max(150, Math.min(800, newWidth))
+                    const minWidth = parseInt(
+                        sidebarThemeVariables['--cm-ext-sidebar-min-width'],
+                    )
+                    const maxWidth = parseInt(
+                        sidebarThemeVariables['--cm-ext-sidebar-max-width'],
+                    )
+                    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth))
 
-                    this.dom.style.width = `${newWidth}px`
+                    // Update CSS variable
+                    this.dom.style.setProperty(
+                        '--cm-ext-sidebar-width',
+                        `${newWidth}px`,
+                    )
+                }
 
-                    // Update the state with the new width
+                const stopDragging = () => {
+                    if (!this.isDragging) return
+                    this.isDragging = false
+
+                    // Remove event listeners
+                    document.removeEventListener('mousemove', onDrag)
+                    document.removeEventListener('mouseup', stopDragging)
+                    document.body.classList.remove('cm-ext-sidebar-dragging')
+
+                    // Update state with new width
+                    const stateField = sidebarStates.get(id)!
+                    const editorElement = this.dom.closest(
+                        '.cm-editor',
+                    ) as HTMLElement
+                    if (!editorElement) return
+                    const view = EditorView.findFromDOM(editorElement)
+                    if (!view) return
+
                     view.dispatch({
                         effects: updateSidebarOptionsEffect.of({
-                            ...state.options,
-                            width: `${newWidth}px`,
+                            ...view.state.field(stateField).options,
+                            width: this.dom.style.getPropertyValue(
+                                '--cm-ext-sidebar-width',
+                            ),
                         }),
                     })
                 }
 
-                const stopDragging = () => {
-                    this.isDragging = false
-                    document.removeEventListener('mousemove', onDrag)
-                    document.removeEventListener('mouseup', stopDragging)
-                    document.body.style.cursor = ''
-                    document.body.style.userSelect = ''
-                }
-
-                handle.addEventListener('mousedown', startDragging)
-                return handle
+                this.resizeHandle.addEventListener('mousedown', startDragging)
             }
 
-            private applySidebarStyles(
-                options: SidebarOptions,
-                visible: boolean,
-            ) {
-                const { width, backgroundColor, dock, overlay } = options
-                const editor = this.dom.parentElement
+            private applySidebarStyles(options: SidebarOptions) {
+                const {
+                    width,
+                    backgroundColor,
+                    dock = 'left',
+                    overlay = true,
+                } = options
 
-                if (editor) {
-                    Object.assign(
-                        editor.style,
-                        overlay
-                            ? inlineStyles.editor.overlay
-                            : inlineStyles.editor.nonOverlay,
+                // Set data attributes for theme-based positioning
+                this.dom.setAttribute('data-dock', dock)
+                this.dom.setAttribute('data-overlay', overlay.toString())
+                this.panelContainer.setAttribute('data-dock', dock)
+
+                // Update CSS variables
+                if (width) {
+                    this.dom.style.setProperty('--cm-ext-sidebar-width', width)
+                }
+                if (backgroundColor) {
+                    this.dom.style.setProperty(
+                        '--cm-ext-sidebar-bg',
+                        backgroundColor,
                     )
                 }
 
-                // Apply base sidebar styles
-                Object.assign(this.dom.style, {
-                    ...inlineStyles.sidebar.base,
-                    background: backgroundColor,
-                })
-
-                // Position the resize handle based on dock position
-                Object.assign(this.resizeHandle.style, {
-                    [dock === 'left' ? 'right' : 'left']: '-2px',
-                })
-
-                if (!overlay) {
-                    Object.assign(this.dom.style, {
-                        ...inlineStyles.sidebar.nonOverlay,
-                        order: dock === 'left' ? -1 : 1,
-                        width: visible ? width : '0',
-                        opacity: visible ? '1' : '0',
-                    })
+                // Position resize handle based on dock position
+                if (dock === 'left') {
+                    this.resizeHandle.style.left = 'auto'
+                    this.resizeHandle.style.right = '-2px'
                 } else {
-                    Object.assign(this.dom.style, {
-                        ...inlineStyles.sidebar.overlay,
-                        [dock === 'left' ? 'left' : 'right']: visible
-                            ? '0'
-                            : `-${width}`,
-                        width: width,
-                    })
+                    this.resizeHandle.style.left = '-2px'
+                    this.resizeHandle.style.right = 'auto'
                 }
 
-                if (!overlay && editor) {
-                    const editorContent = editor.querySelector(
-                        '.cm-scroller',
-                    ) as HTMLElement
-                    if (editorContent) {
-                        Object.assign(
-                            editorContent.style,
-                            inlineStyles.editorContent,
-                        )
-                    }
+                // Apply minimal editor layout styles
+                const editor = this.dom.closest('.cm-editor') as HTMLElement
+                if (editor) {
+                    editor.style.position = 'relative'
                 }
-
-                // Update data-dock attribute when options change
-                this.panelContainer.setAttribute(
-                    'data-dock',
-                    options.dock || 'left',
-                )
             }
 
             private renderActivePanel(view: EditorView, state: SidebarState) {
-                const panelSpecs = view.state.facet(sidebarPanel)
+                // Clear existing panel
+                if (this.activePanel) {
+                    this.activePanel.remove()
+                    this.activePanel = null
+                }
 
-                this.panelContainer.innerHTML = ''
-                this.activePanel = null
-
+                // Find and render new panel
                 if (state.activePanelId) {
-                    const panelSpec = panelSpecs.find(
-                        spec => spec.id === state.activePanelId,
-                    )
-                    if (panelSpec) {
-                        debug('Found panel spec:', panelSpec.id)
-                        this.activePanel = panelSpec.create(view)
+                    const panels = view.state.facet(sidebarPanel)
+                    const panel = panels.find(p => p.id === state.activePanelId)
+                    if (panel) {
+                        this.activePanel = panel.create(view)
                         this.panelContainer.appendChild(this.activePanel)
-                        panelSpec.update?.(view)
-                    } else {
-                        debug(
-                            'Warning: No panel spec found for:',
-                            state.activePanelId,
-                        )
                     }
                 }
             }
         },
     )
 
-// Function to create a sidebar extension
 export function createSidebar(options: SidebarOptions): Extension[] {
-    const { id } = options
-    const mergedOptions = { ...defaultSidebarOptions, ...options }
+    const id = options.id
+    const stateField = createSidebarState(id, {
+        ...defaultSidebarOptions,
+        ...options,
+    })
 
-    // Create a new state field for this sidebar if it doesn't exist
-    if (!sidebarStates.has(id)) {
-        sidebarStates.set(id, createSidebarState(id, mergedOptions))
-    }
-    const stateField = sidebarStates.get(id)!
+    // Store the state field for this sidebar
+    sidebarStates.set(id, stateField)
 
-    return [
-        stateField,
-        createSidebarPlugin(id),
-        // Update the listener to use the initialPanelId from options
-        EditorView.updateListener.of(update => {
-            const hasToggleEffect = update.transactions.some(tr =>
-                tr.effects.some(
-                    e =>
-                        e.is(toggleSidebarEffect) &&
-                        e.value.id === id &&
-                        e.value.visible,
-                ),
-            )
-            if (hasToggleEffect) {
-                update.view.dispatch({
-                    effects: [
-                        setActivePanelEffect.of({
-                            id,
-                            panelId: mergedOptions.initialPanelId ?? null,
-                        }),
-                    ],
-                })
-            }
-        }),
-    ]
+    return [stateField, createSidebarPlugin(id), sidebarTheme.theme]
 }
 
 export type { SidebarPanelSpec, SidebarOptions, DockPosition }

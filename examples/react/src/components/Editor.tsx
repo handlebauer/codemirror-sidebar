@@ -22,7 +22,6 @@ export function Editor() {
             width: '400px',
             backgroundColor: '#2c313a',
             keymap: { mac: 'Cmd-r', win: 'Ctrl-r' },
-            model: 'gpt-4',
         },
     })
 
