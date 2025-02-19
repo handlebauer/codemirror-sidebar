@@ -1,4 +1,4 @@
-export type AISidebarTab = 'assistant' | 'agent'
+export type AISidebarTab = 'assistant'
 
 export interface ToolCall {
     tool_name: string
@@ -12,11 +12,6 @@ interface MessageBase {
 
 export interface AssistantMessage extends MessageBase {
     tool_calls?: ToolCall[]
-}
-
-export interface Agent {
-    id: string
-    name: string
 }
 
 export interface Tool {

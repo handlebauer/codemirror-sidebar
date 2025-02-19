@@ -8,7 +8,6 @@ import {
     addMessageEffect,
     updateMessageStatusEffect,
     selectModelEffect,
-    switchTabEffect,
 } from './state'
 import { aiService } from '../../ai/ai'
 import type { Message } from '../types'
@@ -48,21 +47,14 @@ export function renderAssistantPanel(dom: HTMLElement, view: EditorView) {
     const tabsContainer = crelt('div', { class: 'cm-ext-assistant-tabs' })
     const tabsGroup = crelt('div', { class: 'cm-ext-assistant-tabs-group' })
 
-    const createTab = (label: string, id: 'assistant' | 'agent') => {
-        const isActive = state.activeTab === id
-        const tab = crelt(
-            'button',
-            {
-                class: `cm-ext-assistant-tab${isActive ? ' cm-ext-assistant-tab-active' : ''}`,
-            },
-            label,
-        )
-        tab.onclick = () => view.dispatch({ effects: switchTabEffect.of(id) })
-        return tab
-    }
-
-    tabsGroup.appendChild(createTab('Assistant', 'assistant'))
-    tabsGroup.appendChild(createTab('Agent', 'agent'))
+    const assistantTab = crelt(
+        'button',
+        {
+            class: 'cm-ext-assistant-tab cm-ext-assistant-tab-active',
+        },
+        'Assistant',
+    )
+    tabsGroup.appendChild(assistantTab)
 
     // Create right side controls container
     const controlsContainer = crelt('div', {

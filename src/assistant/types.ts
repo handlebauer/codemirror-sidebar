@@ -15,7 +15,7 @@ export interface Message {
 }
 
 export interface AssistantState {
-    activeTab: 'assistant' | 'agent'
+    activeTab: 'assistant'
     messages: Message[]
     isLoading: boolean
     selectedModel: ModelId

@@ -3,7 +3,7 @@ import type { ModelId, ModelProvider } from '../../ai/types'
 import type { AssistantState, Message } from '../types'
 
 // Effects
-export const switchTabEffect = StateEffect.define<'assistant' | 'agent'>()
+export const switchTabEffect = StateEffect.define<'assistant'>()
 export const addMessageEffect = StateEffect.define<Message>()
 export const updateMessageStatusEffect = StateEffect.define<{
     message: Message

@@ -16,8 +16,6 @@ interface GenerateTextParams {
 
 interface AIService {
     generateText: (params: GenerateTextParams) => Promise<string>
-    // Placeholder for agent calls in the future:
-    // callAgent: (params: AgentCallParams) => Promise<AgentCallResult>
 }
 
 // Debug helper
@@ -146,8 +144,6 @@ const createAIService = (): AIService => {
 
     return {
         generateText: generateTextFn,
-        // Placeholder for agent calls
-        // callAgent: async (params: AgentCallParams) => { ... }
     }
 }
 
