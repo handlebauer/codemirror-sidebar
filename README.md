@@ -104,12 +104,13 @@ For React applications, we provide a convenient `useEditor` hook that simplifies
 import { useEditor } from '@repoview/codemirror-extensions'
 
 function Editor() {
-    const { ref, view } = useEditor({
+    const { ref, view, updateProjectName } = useEditor({
         initialContent: 'Your initial content here',
         // Configure file explorer
         explorer: {
             initiallyOpen: true,
             width: '250px',
+            projectName: 'My Project',
             initialFiles: [
                 {
                     name: 'example.ts',
@@ -125,6 +126,14 @@ function Editor() {
         // Add any additional CodeMirror extensions
         extensions: [],
     })
+
+    // Example: Update project name after 5 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            updateProjectName('Updated Project Name')
+        }, 5000)
+        return () => clearTimeout(timer)
+    }, [updateProjectName])
 
     return <div ref={ref} style={{ height: '100vh' }} />
 }

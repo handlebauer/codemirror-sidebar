@@ -10,6 +10,7 @@ import { createCompleteTheme } from '../themes'
 import type { File } from '../explorer'
 import type { AssistantOptions } from '../assistant'
 import type { ExplorerOptions } from '../explorer'
+import { setProjectNameEffect } from '../explorer/state'
 
 interface EditorConfig {
     /**
@@ -19,9 +20,9 @@ interface EditorConfig {
     initialContent?: string
     /**
      * Configuration for the file explorer
-     * @example { initiallyOpen: true, width: '250px' }
+     * @example { initiallyOpen: true, width: '250px', projectName: 'My Project' }
      */
-    explorer?: ExplorerOptions & { initialFiles?: File[] }
+    explorer?: ExplorerOptions & { initialFiles?: File[]; projectName?: string }
     /**
      * Configuration for the AI assistant
      * @example { initiallyOpen: true, width: '400px' }
@@ -70,6 +71,7 @@ export function useEditor(config: EditorConfig = {}) {
                               overlay: false,
                               backgroundColor: '#2c313a',
                               initiallyOpen: false,
+                              projectName: explorerConfig.projectName,
                               ...explorerConfig,
                           }),
                       ]
@@ -104,6 +106,13 @@ export function useEditor(config: EditorConfig = {}) {
             })
         }
 
+        // Initialize project name if provided
+        if (explorerConfig?.projectName) {
+            view.dispatch({
+                effects: setProjectNameEffect.of(explorerConfig.projectName),
+            })
+        }
+
         // Focus the editor view after initialization
         view.focus()
 
@@ -115,9 +124,17 @@ export function useEditor(config: EditorConfig = {}) {
         }
     }, [config])
 
+    const updateProjectName = (projectName: string) => {
+        if (!viewRef.current) return
+        viewRef.current.dispatch({
+            effects: setProjectNameEffect.of(projectName),
+        })
+    }
+
     return {
         ref: editorRef,
         view: viewRef.current,
+        updateProjectName,
     }
 }
 
